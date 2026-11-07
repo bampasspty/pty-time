@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.vercel/
+qa/
+*.local
+.env
+.env.*
+.DS_Store
+Thumbs.db
+tools/__pycache__/
