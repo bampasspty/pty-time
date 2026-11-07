@@ -49,12 +49,15 @@ Resultado: **20/20 comprobaciones pasan, 0 errores**.
 
 ## 4. QA de producción (`tools/qa-prod.mjs`)
 
-Resultado: **8/8 comprobaciones pasan, 0 errores de consola**, contra la URL pública.
+Resultado: **9/9 comprobaciones pasan, 0 errores de consola**, contra la URL pública.
 
 - Producción sirve la build v0.3 (`index-DRaj8FuF.js`).
 - Título «Calito, del barrio al apocalipsis», footer `DEMO v0.3`.
 - Pantalla CALITO, 4 matones, HUD 8/30, línea de visión y disparo funcionando.
-- **58 FPS** en la URL pública.
+- **56–58 FPS** en la URL pública a 1280×720.
+- **Gama baja emulada:** teléfono horizontal 844×390 con CPU limitada 4× (CDP
+  `Emulation.setCPUThrottlingRate`), táctil activo, 4 matones: **56 FPS** y controles
+  FUEGO/R/ARMA visibles. Es una aproximación; falta el teléfono físico.
 
 ## 5. Rendimiento
 

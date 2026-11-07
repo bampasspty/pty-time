@@ -57,8 +57,8 @@ simulacro de terremoto con PTY Alerta y guardado local.
 - **Repositorio:** https://github.com/bampasspty/pty-time
 
 Desplegada en Vercel (proyecto `pty-time`). Verificación automatizada contra la URL
-pública: HTTP 200, 8/8 comprobaciones (`tools/qa-prod.mjs`), 0 errores de consola y
-58 FPS en Edge headless con GPU.
+pública: HTTP 200, 9/9 comprobaciones (`tools/qa-prod.mjs`), 0 errores de consola,
+56–58 FPS en Edge headless y 56 FPS en gama baja emulada (CPU 4×, 844×390 táctil).
 
 ## Estado
 

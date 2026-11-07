@@ -86,6 +86,66 @@ const fps = await page.evaluate(
 );
 check('FPS producción aceptables', fps >= 40, `${fps} fps`);
 
+// ------------------------------------------------ emulación de gama baja
+// Viewport de teléfono horizontal + CPU 4x más lenta (aproxima un móvil económico).
+const lowCtx = await browser.newContext({
+  viewport: { width: 844, height: 390 },
+  hasTouch: true,
+  isMobile: true,
+});
+const lowPage = await lowCtx.newPage();
+lowPage.on('pageerror', (e) => results.errors.push('low-end pageerror: ' + (e.stack ?? e.message)));
+lowPage.on('console', (m) => {
+  if (m.type() === 'error' && !m.text().includes('favicon')) results.errors.push('low-end console: ' + m.text());
+});
+const cdp = await lowCtx.newCDPSession(lowPage);
+await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+await lowPage.goto(URL, { waitUntil: 'domcontentloaded' });
+await lowPage.waitForFunction(
+  () => window.__PTY_GAME__?.scene?.getScenes(true)?.some((s) => s.scene.key === 'Title'),
+  { timeout: 90000 },
+);
+await lowPage.waitForTimeout(1200);
+await lowPage.evaluate(() => window.__PTY_GAME__.scene.getScene('Title').newGame());
+await lowPage.waitForFunction(
+  () => window.__PTY_GAME__?.scene?.getScenes(true)?.some((s) => s.scene.key === 'Character'),
+  { timeout: 30000 },
+);
+await lowPage.waitForTimeout(600);
+await lowPage.evaluate(() => window.__PTY_GAME__.scene.getScene('Character').enterGame());
+await lowPage.waitForFunction(
+  () => window.__PTY_GAME__?.scene?.getScenes(true)?.some((s) => s.scene.key === 'Game'),
+  { timeout: 30000 },
+);
+await lowPage.waitForTimeout(2000);
+
+const lowEnd = await lowPage.evaluate(
+  () =>
+    new Promise((resolve) => {
+      let frames = 0;
+      const start = performance.now();
+      const tick = () => {
+        frames++;
+        if (performance.now() - start > 2500) {
+          resolve({
+            fps: Math.round(window.__PTY_GAME__.loop.actualFps),
+            frames,
+            enemies: window.__PTY_GAME__.scene.getScene('Game').enemies.length,
+            touch: window.__PTY_GAME__.scene.getScene('UI').isTouch,
+          });
+        } else requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }),
+);
+check(
+  'gama baja emulada (CPU 4x, 844×390) se mantiene jugable',
+  lowEnd.fps >= 25 && lowEnd.enemies === 4,
+  JSON.stringify(lowEnd),
+);
+await lowPage.screenshot({ path: `${OUT}/prod-lowend.png` });
+await lowCtx.close();
+
 await browser.close();
 const failed = results.checks.filter((c) => !c.ok);
 console.log('');

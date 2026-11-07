@@ -41,9 +41,9 @@ v0.1.0 se conserva como cimiento técnico.
 - Guardado v2 en `localStorage` (`pty-time-save-v1`, versión 2) con **migración v1**.
 - 65 PNG de pixel art (44.9 KB) + generador determinista; texturas de combate en memoria.
 - Pruebas: **55/55** unitarias, **20/20** E2E de regresión, **22/22** E2E de combate y
-  **8/8** comprobaciones contra la URL pública (0 errores de consola en todas).
-- Build de producción OK y **desplegada**: bundle 1,330.79 KB (370.17 KB gzip) y 58 FPS
-  en producción (Edge headless con GPU).
+  **9/9** comprobaciones contra la URL pública (0 errores de consola en todas).
+- Build de producción OK y **desplegada**: bundle 1,330.79 KB (370.17 KB gzip), 56–58 FPS
+  en producción y 56 FPS en gama baja emulada (CPU 4×, 844×390 táctil).
 
 ### Pendiente real
 
@@ -78,8 +78,9 @@ node tools/qa-prod.mjs     # verifica la build pública de Vercel (sin servidor 
 ## Publicación
 
 - Producción: **https://pty-time.vercel.app** (v0.3.0, auto-deploy desde `main`).
-- Verificación 2026-11-07: build `index-DRaj8FuF.js`, HTTP 200, 8/8 comprobaciones de
-  producción (`tools/qa-prod.mjs`), 0 errores de consola y 58 FPS a 1280×720.
+- Verificación 2026-11-07: build `index-DRaj8FuF.js`, HTTP 200, 9/9 comprobaciones de
+  producción (`tools/qa-prod.mjs`), 0 errores de consola, 56–58 FPS a 1280×720 y 56 FPS
+  en gama baja emulada (CPU 4×, 844×390 táctil).
 - Proyecto: `gestion14/pty-time` · framework Vite · build `pnpm build` · salida `dist`.
 - **GitHub conectado a Vercel**: cada push a `main` despliega automáticamente.
 - Para desplegar manualmente: `pnpm deploy:vercel`.
