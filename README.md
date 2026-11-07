@@ -12,6 +12,8 @@ teléfono.
 ![Pantalla de título](docs/screenshots/title.png)
 ![Exploración en San Miguelito](docs/screenshots/game.png)
 ![Diálogo con Doña Nena](docs/screenshots/dialogue.png)
+![Simulacro de terremoto](docs/screenshots/drill.png)
+![Vista móvil](docs/screenshots/mobile.png)
 
 ## Estado
 

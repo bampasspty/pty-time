@@ -69,7 +69,16 @@ Notas:
 - Assets 42.5 KB; bundle JS 1.30 MB (≈360 KB gzip). Un tilemap de suelo y ~200 sprites.
 - Falta la validación en un dispositivo físico de gama baja.
 
-## 4. Criterios del MVP (documento maestro)
+## 4. Build de producción y preview
+
+- `pnpm build` → **exit 0**. Salida: `dist/index.html` 2.11 KB, JS 1,300.31 KB
+  (gzip 360.42 KB).
+- `pnpm preview --port 4173` + Edge: 0 errores de consola, 0 respuestas 404,
+  74 texturas en título y 88 en juego, 8 NPCs, 149 colliders, 49 FPS a 1280×720.
+- El build se sirve desde `dist/` con rutas absolutas de assets (`/assets/...`), listo
+  para raíz de dominio en Vercel.
+
+## 5. Criterios del MVP (documento maestro)
 
 | Criterio | Resultado |
 |---|---|
@@ -85,7 +94,7 @@ Notas:
 | Rendimiento aceptable | 50–57 FPS en Edge con GPU; físico pendiente |
 | Demo publicada en Vercel | **Pendiente** (sin token/cuenta en el entorno) |
 
-## 5. Capturas
+## 6. Capturas
 
 Generadas en `qa/` (ignorado por git):
 
@@ -94,7 +103,7 @@ Generadas en `qa/` (ignorado por git):
 - `final-mobile-title.png`, `final-mobile-character.png`, `final-mobile-spawn.png`
 - `final-landscape-drill-result.png`
 
-## 6. Bloqueos / riesgos
+## 7. Bloqueos / riesgos
 
 - Publicación Vercel/GitHub: sin credenciales en el entorno.
 - Hardware físico de gama baja no probado.
