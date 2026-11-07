@@ -1,85 +1,86 @@
-# QA REPORT · PTY Time v0.2.0 (Slice A)
+# QA REPORT · PTY Time v0.3.0 (Slice A cerrado)
 
 Fecha: 2026-11-07 · Navegador: Microsoft Edge headless (Playwright `playwright-core`),
-Windows. Servidor: Vite 7 en `http://127.0.0.1:5173`.
+Windows. Servidor local: Vite 7 en `http://127.0.0.1:5173`. Producción:
+**https://pty-time.vercel.app**.
 
-Alcance de esta entrega: **núcleo jugable del Slice A** — combate, matones con IA, misión
-criminal, vida/munición, guardado v2 y controles táctiles de disparo.
+Alcance: cierre del **Slice A** — Calito canónico, combate, matones con IA y línea de
+visión, misión criminal, vida/munición, cambio de arma, guardado v2 y controles táctiles.
 
 ## 1. Pruebas automáticas (`node --test "tests/*.test.js"`)
 
-Resultado: **52/52 pruebas pasan**.
+Resultado: **55/55 pruebas pasan**.
 
 | Archivo | Pruebas | Cobertura |
 |---|---|---|
-| `tests/mission.test.js` | 8 | mandado completo, desbloqueo de la misión criminal, conteo de enemigos, recompensas, marcador de NPC, acciones fuera de orden |
+| `tests/mission.test.js` | 8 | mandado, desbloqueo criminal, conteo de enemigos, recompensas, marcador |
 | `tests/dialogues.test.js` | 7 | 8 NPCs × 6 pasos × 5 pasos criminales; acciones exactas; contexto inválido |
-| `tests/save.test.js` | 9 | ida/vuelta v2, **migración v1 → v2**, sanitización, JSON corrupto, `hasProgress` |
-| `tests/combat.test.js` | 9 | cadencia, cargador, recarga, arma cuerpo a cuerpo, daño/muerte/reaparición, ida y vuelta al guardado |
-| `tests/enemyAI.test.js` | 8 | estados idle → chase → attack → dead, cooldown de ataque, alerta por ruido, mirada, datos de enemigos |
-| `tests/map.test.js` | 6 | dimensiones, kinds, NPCs, chancleta, zonas, **spawns de matones** |
-| `tests/assets.test.js` | 5 | 65 PNG, hojas de personaje y **enemigos 48×96**, retratos, edificios/props, presupuesto |
+| `tests/save.test.js` | 9 | ida/vuelta v2, migración v1 → v2, sanitización, JSON corrupto, `hasProgress` |
+| `tests/combat.test.js` | 9 | cadencia, cargador, recarga, cuerpo a cuerpo, daño/muerte/reaparición, guardado |
+| `tests/enemyAI.test.js` | 11 | estados, cooldown, alerta por ruido, **línea de visión**, investigación, mirada, datos |
+| `tests/map.test.js` | 6 | dimensiones, kinds, NPCs, chancleta, zonas, spawns de matones |
+| `tests/assets.test.js` | 5 | 65 PNG, hojas de personaje/enemigos 48×96, retratos, edificios/props |
 
 ## 2. QA E2E de combate (`tools/qa-combat.mjs`)
 
-Resultado: **18/18 comprobaciones pasan, 0 errores de consola/página**.
+Resultado: **22/22 comprobaciones pasan, 0 errores de consola/página**.
 
-- Spawn de 4 matones y HUD con vida (100) y munición (8/24).
-- Disparo: consume munición, la bala golpea al matón y el HUD se actualiza.
-- Recarga manual (`R` / botón): el cargador vuelve a 8 y baja la reserva.
-- Mandado de Doña Nena completo → +25 de yapa y simulacro desbloqueado.
-- La misión criminal se abre al terminar el mandado; `startCrime` revive a los 4 matones.
-- Tres matones derrotados → contador `3/3` → paso `report`.
-- `reportCrime` → +60 de yapa, +10 de reputación y modal de misión completada.
-- Vida a 0 → modal **TE TUMBARON** → REAPARECER restaura vida completa.
-- Guardado v2 en `localStorage`: versión 2, misiones `done`, 85 de yapa, 3 derrotas.
-- Móvil táctil 844×390: botones FUEGO y R visibles junto al joystick.
-- Rendimiento: **59 FPS** en escritorio durante el combate.
+- 4 matones, HUD con vida (100) y munición (8/30).
+- Disparo: consume munición, golpea al matón y actualiza el HUD.
+- Recarga manual (R / botón) y **cambio de arma** (Q / botón ARMA).
+- **Línea de visión**: bloqueada por edificio, libre en la calle.
+- Mandado completo → +25 yapa y simulacro; crimen se abre y `startCrime` revive matones.
+- 3 matones derrotados → `3/3` → `report`; `reportCrime` → +60 yapa, +10 reputación.
+- Vida a 0 → modal TE TUMBARON → reaparición con vida completa.
+- Guardado v2: misiones `done`, 85 yapa, 3 derrotas.
+- Móvil táctil: botones FUEGO/R/ARMA visibles, **tocar FUEGO dispara** y **tocar ARMA
+  cambia de arma**.
+- Rendimiento medido en el flujo completo: 42–59 FPS (modo desarrollo, Edge headless GPU).
 
 ## 3. QA E2E de regresión (`tools/qa-final.mjs`)
 
-Resultado: **20/20 comprobaciones pasan, 0 errores**. La demo anterior sigue funcionando:
+Resultado: **20/20 comprobaciones pasan, 0 errores**.
 
-- Título, creación de personaje, FPS (59.1 tras calentar el primer frame).
-- Misión del mandado paso a paso con la API nueva de misiones.
-- Modal de recompensa, desbloqueo del simulacro y simulacro completo (cubrirse →
-  sujetarse → evacuar) con disclaimer y fuente SINAPROC.
-- CONTINUAR restaura misión `done`, 25 de yapa y simulacro desde el guardado v2.
-- Móvil retrato: joystick, banners, HABLAR y diálogos.
-- Móvil horizontal: el modal largo del simulacro cabe en 390 px de alto.
+- Título, pantalla de Calito (apariencia), misión del mandado paso a paso.
+- Modal de recompensa, simulacro completo (cubrirse → sujetarse → evacuar) con disclaimer
+  y fuente SINAPROC; CONTINUAR restaura el guardado v2.
+- **59.2 FPS** a 1280×720 tras calentar el primer frame.
+- Móvil retrato y horizontal: joystick, HABLAR, diálogos y modales caben en pantalla.
 
-## 4. Rendimiento
+## 4. QA de producción (`tools/qa-prod.mjs`)
 
-| Viewport | FPS |
+Resultado: **8/8 comprobaciones pasan, 0 errores de consola**, contra la URL pública.
+
+- Producción sirve la build v0.3 (`index-DRaj8FuF.js`).
+- Título «Calito, del barrio al apocalipsis», footer `DEMO v0.3`.
+- Pantalla CALITO, 4 matones, HUD 8/30, línea de visión y disparo funcionando.
+- **58 FPS** en la URL pública.
+
+## 5. Rendimiento
+
+| Entorno | FPS |
 |---|---|
-| 1280×720 (con 4 matones y combate) | 51–59 |
-| 844×390 (móvil horizontal) | 50–57 |
+| Producción 1280×720 (Vercel) | 58 |
+| Local 1280×720 (combate activo) | 42–59 |
+| Local 844×390 (móvil horizontal) | 50–57 |
 
-- Assets de juego: **44.9 KB** en 65 PNG (2 hojas nuevas de enemigo).
-- Bundle de producción: **1,329.32 KB** (369.58 KB gzip).
-- Efectos de combate por texturas en memoria (sin PNG extra).
+- Assets: **44.9 KB** en 65 PNG (2 hojas de enemigo; efectos de combate en memoria).
+- Bundle: **1,330.79 KB** (370.17 KB gzip).
+- La línea de visión se cachea 120 ms por enemigo para no castigar móviles.
 - Sigue pendiente la validación en un teléfono físico de gama baja.
-
-## 5. Build de producción
-
-- `pnpm build` → OK. `dist/index.html` 2.11 KB, JS 1,329.32 KB (gzip 369.58 KB).
-- **La URL pública https://pty-time.vercel.app sigue sirviendo la v0.1.0**: esta entrega
-  está confirmada en local y queda lista para desplegar (`pnpm deploy:vercel` o push).
 
 ## 6. Capturas (`qa/`, ignorado por git)
 
-- `combat-map.png` — HUD con vida/munición al entrar al barrio.
-- `combat-crime.png` — matones en la plaza de Los Andes y objetivo `report`.
-- `combat-ko.png` — modal TE TUMBARON.
-- `combat-mobile.png` — botones FUEGO y R en móvil horizontal.
+- `prod-title.png`, `prod-combat.png` — verificación de producción.
+- `combat-map.png`, `combat-crime.png`, `combat-ko.png`, `combat-mobile.png`.
 - Capturas de regresión: `final-desktop-*.png`, `final-mobile-*.png`.
 
-## 7. Bloqueos / riesgos conocidos
+## 7. Decisiones y riesgos conocidos
 
-1. **La IA de matones no evalúa línea de visión**: persiguen aunque haya un edificio en
-   medio (la física les impide atravesarlo, pero pueden quedarse empujando).
-2. **8 direcciones visuales sigue pendiente**: el movimiento diagonal existe y el
-   apuntado es libre, pero las hojas de personaje mantienen 4 filas.
-3. Sin audio todavía.
-4. El combate se probó en emulación táctil; falta el teléfono físico.
-5. Los matones reaparecen al aceptar la misión criminal; no hay respawn durante el juego.
+1. **8 direcciones visuales:** decisión cerrada — 4 filas de animación con dirección
+   dominante, movimiento diagonal y apuntado libre. Redibujar diagonales es opcional.
+2. La IA usa línea de visión aproximada por muestreo de cuerpos estáticos (no visión
+   exacta por geometría); suficiente para el mapa actual.
+3. Sin audio.
+4. Falta probar en teléfono físico.
+5. El Slice B (infección, zombi, inventario y supervivencia) todavía no está implementado.

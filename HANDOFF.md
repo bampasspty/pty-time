@@ -40,8 +40,10 @@ v0.1.0 se conserva como cimiento técnico.
 - Simulacro de terremoto desbloqueable con disclaimer y fuentes SINAPROC.
 - Guardado v2 en `localStorage` (`pty-time-save-v1`, versión 2) con **migración v1**.
 - 65 PNG de pixel art (44.9 KB) + generador determinista; texturas de combate en memoria.
-- Pruebas: **55/55** unitarias, **20/20** E2E de regresión y E2E de combate ampliado.
-- Build de producción OK; 51–59 FPS en Edge headless con 4 enemigos activos.
+- Pruebas: **55/55** unitarias, **20/20** E2E de regresión, **22/22** E2E de combate y
+  **8/8** comprobaciones contra la URL pública (0 errores de consola en todas).
+- Build de producción OK y **desplegada**: bundle 1,330.79 KB (370.17 KB gzip) y 58 FPS
+  en producción (Edge headless con GPU).
 
 ### Pendiente real
 
@@ -70,11 +72,14 @@ QA E2E (requiere Edge instalado y servidor de desarrollo en 5173):
 ```bash
 node tools/qa-final.mjs    # regresión: misión, simulacro, CONTINUAR, móvil
 node tools/qa-combat.mjs   # combate, misión criminal, KO, guardado v2, táctil
+node tools/qa-prod.mjs     # verifica la build pública de Vercel (sin servidor local)
 ```
 
 ## Publicación
 
-- Producción: **https://pty-time.vercel.app**
+- Producción: **https://pty-time.vercel.app** (v0.3.0, auto-deploy desde `main`).
+- Verificación 2026-11-07: build `index-DRaj8FuF.js`, HTTP 200, 8/8 comprobaciones de
+  producción (`tools/qa-prod.mjs`), 0 errores de consola y 58 FPS a 1280×720.
 - Proyecto: `gestion14/pty-time` · framework Vite · build `pnpm build` · salida `dist`.
 - **GitHub conectado a Vercel**: cada push a `main` despliega automáticamente.
 - Para desplegar manualmente: `pnpm deploy:vercel`.

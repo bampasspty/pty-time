@@ -32,7 +32,10 @@ Entrega que completa el Slice A de la dirección v1.2 y se despliega a producci�
 
 - Decisión de producto cerrada: **4 filas visuales** de animación con dirección dominante
   y apuntado libre; redibujar diagonales queda como mejora opcional futura.
-- Pruebas: **55/55** unitarias; QA de regresión y de combate ampliados.
+- Pruebas: **55/55** unitarias; **20/20** QA de regresión; **22/22** QA de combate y
+  **8/8** comprobaciones de producción.
+- **Desplegado en https://pty-time.vercel.app** (build `index-DRaj8FuF.js`); verificado
+  con HTTP 200, 0 errores de consola y 58 FPS.
 - Pendiente: probar en teléfono físico y arrancar el Slice B (infección y zombis).
 
 ## [0.2.0] — 2026-11-07 · Slice A: combate y crimen en San Miguelito
