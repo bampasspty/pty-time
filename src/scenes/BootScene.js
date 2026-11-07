@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BUILDINGS, PROPS, PLAYER_VARIANTS, NPC_IDS } from '../world/defs.js';
+import { ENEMY_IDS } from '../data/enemies.js';
 import { events } from '../systems/EventBus.js';
 
 const UI_IMAGES = [
@@ -44,6 +45,13 @@ export class BootScene extends Phaser.Scene {
 
     for (const id of NPC_IDS) {
       this.load.spritesheet(`npc-${id}`, `assets/characters/npc-${id}.png`, {
+        frameWidth: 16,
+        frameHeight: 24,
+      });
+    }
+
+    for (const id of ENEMY_IDS) {
+      this.load.spritesheet(`enemy-${id}`, `assets/characters/enemy-${id}.png`, {
         frameWidth: 16,
         frameHeight: 24,
       });
@@ -108,6 +116,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
+    this.createFxTextures();
     this.createAnimations();
     document.getElementById('loading')?.classList.add('hidden');
     if (this.loadErrors) console.warn(`[Boot] ${this.loadErrors} assets no cargaron; revisa rutas.`);
@@ -115,10 +124,57 @@ export class BootScene extends Phaser.Scene {
     this.scene.start('Title');
   }
 
+  // Texturas mínimas de combate generadas en memoria (no son PNG del contrato
+  // de assets): bala, fogonazo, impacto y mira. Se crean una sola vez.
+  createFxTextures() {
+    const make = (key, width, height, draw) => {
+      if (this.textures.exists(key)) return;
+      const g = this.make.graphics({ x: 0, y: 0 }, false);
+      draw(g);
+      g.generateTexture(key, width, height);
+      g.destroy();
+    };
+
+    make('fx-bullet', 4, 2, (g) => {
+      g.fillStyle(0xfff3b0, 1);
+      g.fillRect(0, 0, 4, 1);
+      g.fillStyle(0xffd166, 1);
+      g.fillRect(0, 1, 4, 1);
+    });
+
+    make('fx-muzzle', 10, 10, (g) => {
+      g.fillStyle(0xfff3b0, 1);
+      g.fillRect(4, 0, 2, 10);
+      g.fillRect(0, 4, 10, 2);
+      g.fillStyle(0xffd166, 0.9);
+      g.fillRect(4, 2, 2, 6);
+      g.fillRect(2, 4, 6, 2);
+    });
+
+    make('fx-hit', 6, 6, (g) => {
+      g.fillStyle(0xffd166, 1);
+      g.fillRect(2, 0, 2, 6);
+      g.fillRect(0, 2, 6, 2);
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(2, 2, 2, 2);
+    });
+
+    make('ui-crosshair', 13, 13, (g) => {
+      g.fillStyle(0xffffff, 0.9);
+      g.fillRect(0, 6, 4, 1);
+      g.fillRect(9, 6, 4, 1);
+      g.fillRect(6, 0, 1, 4);
+      g.fillRect(6, 9, 1, 4);
+      g.fillStyle(0xffd166, 1);
+      g.fillRect(6, 6, 1, 1);
+    });
+  }
+
   createAnimations() {
     const keys = [
       ...PLAYER_VARIANTS.map((v) => `player-${v.id}`),
       ...NPC_IDS.map((id) => `npc-${id}`),
+      ...ENEMY_IDS.map((id) => `enemy-${id}`),
     ];
 
     for (const key of keys) {

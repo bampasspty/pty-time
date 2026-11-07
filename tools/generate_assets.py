@@ -379,6 +379,21 @@ NPCS = {
     ),
 }
 
+# Enemigos del Slice A (matones). Misma hoja de personaje 48x96 que los NPC:
+# 4 filas (down/left/right/up) x 3 frames (idle, paso A, paso B).
+ENEMIES = {
+    "maton": _spec(
+        skin=SKIN_M, skin_hi=SKIN_L, skin_sh=SKIN_D,
+        hair=HAIR_K, shirt=PANTS_D, pants=PANTS_B,
+        cap=PTY_RED, cap_hi=SHIRT_R, shoes=SHADOW, pattern="plain",
+    ),
+    "maton-duro": _spec(
+        skin=SKIN_D, skin_hi=SKIN_M, skin_sh=HAIR_BR,
+        hair=HAIR_K, shirt=PTY_RED, pants=PANTS_D,
+        mustache=True, shoes=SHADOW,
+    ),
+}
+
 
 def _geom(spec):
     if spec["kid"]:
@@ -2543,6 +2558,8 @@ def expected_files():
         exp[f"characters/{name}.png"] = (48, 96, True)
     for nid in NPCS:
         exp[f"characters/npc-{nid}.png"] = (48, 96, True)
+    for eid in ENEMIES:
+        exp[f"characters/enemy-{eid}.png"] = (48, 96, True)
     for name, _spec in PORTRAITS:
         exp[f"ui/portraits/{name}.png"] = (32, 32, True)
     for name, size in BUILDING_SIZES.items():
@@ -2561,6 +2578,8 @@ def generate_assets():
         save_png(character_sheet(spec), f"characters/{name}.png")
     for nid, spec in NPCS.items():
         save_png(character_sheet(spec), f"characters/npc-{nid}.png")
+    for eid, spec in ENEMIES.items():
+        save_png(character_sheet(spec), f"characters/enemy-{eid}.png")
     for name, spec in PORTRAITS:
         save_png(draw_portrait(spec), f"ui/portraits/{name}.png")
     for name, fn in BUILDINGS.items():
@@ -2573,7 +2592,7 @@ def generate_assets():
 
 
 def validate(expected):
-    n_expected = (1 + len(PLAYERS) + len(NPCS) + len(PORTRAITS)
+    n_expected = (1 + len(PLAYERS) + len(NPCS) + len(ENEMIES) + len(PORTRAITS)
                   + len(BUILDING_SIZES) + len(PROP_DRAWERS) + len(UI_ICONS) + 1)
     assert len(expected) == n_expected, "faltan archivos en la tabla de esperados"
     errors = []

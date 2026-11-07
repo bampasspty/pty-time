@@ -1,5 +1,61 @@
 # CHANGELOG · PTY Time
 
+## [0.2.0] — 2026-11-07 · Slice A: combate y crimen en San Miguelito
+
+Primer bloque jugable de la dirección v1.2. **Sólo en local: la URL pública sigue en
+v0.1.0 hasta desplegar.**
+
+### Añadido
+
+- **Combate cenital** (`src/systems/CombatSystem.js`, `src/entities/Bullet.js`):
+  - pistola «LA 9» con cargador de 8, reserva de 24, recarga de 850 ms y cadencia de 280 ms;
+  - puño como arma cuerpo a cuerpo (sin munición);
+  - balas con dispersión, alcance y daño; fogonazo, impacto y sacudida de cámara moderada;
+  - apuntado libre con ratón; disparo con clic izquierdo o `J`; recarga con `R`.
+- **Enemigos con IA** (`src/data/enemies.js`, `src/systems/EnemyAI.js`,
+  `src/entities/Enemy.js`): matón y matón jefe con vida, daño y cooldown propios; estados
+  idle → persecución → ataque → muerto; se alertan con los disparos cercanos.
+- **4 matones en la plaza de Los Andes** (`src/world/sanMiguelito.js` → `enemies`).
+- **Vida y daño del jugador**: barra de vida en el HUD, daño con invulnerabilidad breve,
+  modal **TE TUMBARON** y reaparición con vida completa.
+- **Misión criminal «Los matones de la plaza»**: se abre al terminar el mandado, cuenta
+  enemigos derrotados (3/3), da +60 de yapa y +10 de reputación.
+- **Registro de misiones**: `src/data/missions.js` pasa a diccionario de misiones con
+  categorías, requisitos, marcadores de NPC, recompensas y textos de cierre;
+  `MissionSystem` se vuelve genérico (dos misiones sin código específico).
+- **Guardado v2** (`src/systems/SaveSystem.js`): vida, munición, yapa, reputación y estado
+  de todas las misiones; **migración automática de los guardados v1**.
+- **Controles táctiles de combate**: botón FUEGO (apunta al matón más cercano) y botón R.
+- **Arte**: 2 hojas nuevas de enemigo 48×96 (`enemy-maton`, `enemy-maton-duro`) generadas
+  por `tools/generate_assets.py`; texturas de combate generadas en memoria.
+- **QA**: `tools/qa-combat.mjs` (18 comprobaciones E2E) + pruebas unitarias de combate,
+  IA y migración de guardado. Suite total: **52/52**.
+
+### Cambiado
+
+- El HUD muestra ahora vida y munición además de misión y yapa.
+- El joystick táctil sólo se activa en pantallas táctiles; en escritorio el clic dispara.
+- El modal de misión completada usa los textos de cierre de cada misión.
+- `tools/qa-final.mjs` adaptado al esquema de guardado v2 y a la API de misiones nueva.
+- Documentación actualizada: `README.md`, `HANDOFF.md`, `docs/QA_REPORT.md`,
+  `docs/CONTENT_SCHEMA.md`, `docs/MAP_SCHEMA.md`, `docs/ASSET_CONTRACT.md`.
+
+### Corregido
+
+- Los matones quedaban plantados cuando el jugador hablaba: la IA se congela durante
+  diálogos y modales.
+- Clic en un botón de la interfaz ya no dispara un tiro.
+- El crecimiento de la barra de vida usa `setSize` (el ancho del rectángulo no se
+  renderizaba al asignarlo directamente).
+- Las granadas de texto del modal de misión copian el array antes de añadir líneas
+  (los arrays de datos están congelados).
+
+### Notas
+
+- La IA todavía no evalúa línea de visión; la física evita atravesar muros.
+- Sin audio y sin 8 direcciones visuales en esta entrega.
+- Pendiente desplegar y probar en teléfono físico de gama baja.
+
 ## [Unreleased] — dirección v1.2
 
 ### Documentación
@@ -13,13 +69,6 @@
   principal; Slice B: el colapso).
 - Actualizados `README.md`, `HANDOFF.md` y la descripción de `package.json` a la nueva
   dirección.
-
-### Notas
-
-- **Sin cambios de código de juego ni de la demo publicada.** La demo v0.1.0 sigue
-  siendo la base técnica y la única build desplegada.
-- Pendiente confirmar 4 decisiones de diseño antes de iniciar el Slice A (ver
-  `docs/V1.2_AUDIT.md` §6).
 
 ## [0.1.0] — 2026-11-06
 

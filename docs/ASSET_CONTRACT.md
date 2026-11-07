@@ -109,6 +109,16 @@ NPCs (8 hojas), nombre `npc-{id}.png`, mismo layout 48x96:
 | `ana` | Profe Ana, maestra | blusa, falda, libros no |
 | `chofer` | Chofer de bus | camisa celeste, gorra, bigote |
 
+Enemigos del Slice A (2 hojas), nombre `enemy-{id}.png`, mismo layout 48x96:
+
+| id | enemigo | notas visuales |
+|---|---|---|
+| `maton` | Matón de la plaza | gorra roja, camiseta oscura, pantalón azul |
+| `maton-duro` | Matón jefe | camiseta roja, bigote, pantalón oscuro |
+
+Los efectos de combate (bala, fogonazo, impacto y mira) **no son PNG del contrato**:
+se generan en memoria en `BootScene.createFxTextures()`.
+
 ## 3. Retratos — `public/assets/ui/portraits/`
 
 - **32 x 32 px**, fondo transparente, busto del NPC mirando al frente.

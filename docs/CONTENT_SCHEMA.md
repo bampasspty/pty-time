@@ -6,6 +6,8 @@ Archivos a crear (solo esos):
 - `src/data/missions.js`
 - `src/data/dialogues.js`
 - `src/data/earthquake.js`
+- `src/data/weapons.js` (Slice A: armas)
+- `src/data/enemies.js` (Slice A: matones)
 
 Contenido en **español panameño natural**, cálido y breve. Nada de caricaturas ni
 estereotipos. Diálogos de 1-3 líneas por página, máximo 3 páginas por interacción.
@@ -29,26 +31,52 @@ Los 8 ids exactos: `nena`, `pipe`, `chen`, `melva`, `kevin`, `yolanda`, `ana`, `
 
 ## `src/data/missions.js`
 
+Desde v0.2.0 es un **registro de misiones**; el motor (`src/systems/MissionSystem.js`)
+es genérico y no conoce ninguna misión concreta.
+
 ```js
-export const MISSION = {
-  id: 'el-mandado',
-  title: 'El mandado de Doña Nena',
-  description: 'Doña Nena necesita ayuda con un mandado y su nieto Pipe no aparece.',
-  startStep: 'find-pipe',
-  steps: {
-    'find-pipe': 'Busca a Pipe en la cancha de San Isidro.',
-    'find-chancla': 'Encuentra la chancleta de Pipe cerca de la parada de bus.',
-    'return-pipe': 'Devuélvele la chancleta a Pipe en la cancha.',
-    'report-nena': 'Regresa donde Doña Nena para contarle que todo está bien.',
-    done: 'Misión completada. Simulacro de terremoto desbloqueado.',
+export const MISSIONS = {
+  'el-mandado': {
+    id: 'el-mandado',
+    category: 'secundaria',          // historia | secundaria | crimen | supervivencia | exploracion | evento
+    title: 'El mandado de Doña Nena',
+    description: '...',
+    initialStep: 'inactive',         // 'locked' = se desbloquea con `requires`
+    startStep: 'find-pipe',
+    requires: null,                  // o { mission: 'el-mandado', step: 'done' }
+    steps: { inactive: '...', 'find-pipe': '...', done: '...' },
+    actions: {
+      // acción que devuelve getDialogue -> transición de estado
+      startMission: { from: 'inactive', to: 'find-pipe', toast: 'Nueva misión: ...' },
+      finishMission: {
+        from: 'report-nena', to: 'done',
+        reward: { coins: 25, unlock: 'drill' }, // coins | reputation | unlock:'drill'
+        kind: 'finish',                        // 'finish' muestra el modal de recompensa
+      },
+    },
+    collectibles: {
+      chancla: { from: 'find-chancla', to: 'return-pipe', flag: 'hasChancla', toast: '...' },
+    },
+    marker: { inactive: 'nena', 'find-pipe': 'pipe' }, // NPC de la estrella por paso
+    killTarget: null,                                  // o { count, from, to, toast }
+    completion: { body: '...', bullets: ['...'] },     // texto del modal al terminar
   },
-  // solo para el estado inicial, antes de hablar con Nena:
-  availableObjective: 'Habla con Doña Nena en la fonda.',
-  reward: { coins: 25, unlock: 'earthquake-drill' },
+  'limpia-la-cancha': {
+    id: 'limpia-la-cancha',
+    category: 'crimen',
+    initialStep: 'locked',
+    requires: { mission: 'el-mandado', step: 'done' },
+    killTarget: { count: 3, from: 'deal', to: 'report', toast: '...' },
+    // ... misma estructura
+  },
 };
 
-export const MISSION_STEP_ORDER = ['find-pipe', 'find-chancla', 'return-pipe', 'report-nena', 'done'];
+export const MISSION_ORDER = ['el-mandado', 'limpia-la-cancha'];
 ```
+
+El estado de cada misión (`step`, flags, `kills`, `completed`) se guarda en
+`save.missions[id]`. `MISSION` y `MISSION_STEP_ORDER` se mantienen como alias de la
+primera misión por compatibilidad.
 
 ## `src/data/dialogues.js`
 
@@ -65,6 +93,9 @@ export function getDialogue(npcId, ctx) { ... }
   step: 'find-pipe' | 'find-chancla' | 'return-pipe' | 'report-nena' | 'done' | 'inactive',
   hasChancla: boolean,
   drillUnlocked: boolean,
+  // misión criminal (v0.2.0): 'locked' | 'inactive' | 'deal' | 'report' | 'done'
+  crimeStep: '...',
+  kills: number,
 }
 ```
 
@@ -76,7 +107,9 @@ Devuelve:
     { speaker: 'Doña Nena', text: '...' },
     { speaker: 'Doña Nena', text: '...' },
   ],
-  action: null // o uno de: 'startMission' | 'pipeMet' | 'giveChancla' | 'finishMission'
+  // o una acción del registro de misiones:
+  action: null // 'startMission' | 'pipeMet' | 'giveChancla' | 'finishMission'
+               // | 'startCrime' | 'reportCrime'
 }
 ```
 
@@ -86,6 +119,8 @@ Reglas de acciones:
 - `pipe` con `ctx.step === 'find-pipe'` → acción `pipeMet`.
 - `pipe` con `ctx.step === 'return-pipe'` → acción `giveChancla`.
 - `nena` con `ctx.step === 'report-nena'` → acción `finishMission`.
+- `pipe` con `ctx.step === 'done'` y `ctx.crimeStep === 'inactive'` → acción `startCrime`.
+- `pipe` con `ctx.crimeStep === 'report'` → acción `reportCrime`.
 - Cualquier otro caso → `action: null`.
 
 Contexto de ejemplo: la misión empieza con Nena pidiendo el mandado. Pipe está jugando

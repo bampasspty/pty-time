@@ -68,6 +68,8 @@ async function talkTo(page, id) {
   page.on('pageerror', (e) => results.errors.push('desktop pageerror: ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !m.text().includes('favicon')) results.errors.push('desktop console: ' + m.text()); });
   await enterGame(page);
+  // Deja calentar el primer render/compilación de Vite antes de medir FPS.
+  await page.waitForTimeout(1500);
 
   const perf = await page.evaluate(() => new Promise((resolve) => {
     let frames = 0;
@@ -114,7 +116,7 @@ async function talkTo(page, id) {
     const gs = window.__PTY_GAME__.scene.getScene('Game');
     const ui = window.__PTY_GAME__.scene.getScene('UI');
     return {
-      step: gs.mission.step,
+      step: gs.mission.getState('el-mandado').step,
       coins: gs.mission.coins,
       drillUnlocked: gs.mission.drillUnlocked,
       modalOpen: ui.modal.isOpen,
@@ -188,7 +190,12 @@ async function talkTo(page, id) {
   await page.waitForTimeout(1000);
   const continued = await page.evaluate(() => {
     const gs = window.__PTY_GAME__.scene.getScene('Game');
-    return { step: gs.mission.step, coins: gs.mission.coins, drillUnlocked: gs.mission.drillUnlocked, variant: gs.variant };
+    return {
+      step: gs.mission.getState('el-mandado').step,
+      coins: gs.mission.coins,
+      drillUnlocked: gs.mission.drillUnlocked,
+      variant: gs.variant,
+    };
   });
   check('CONTINUAR restaura misión, yapa y simulacro', continued.step === 'done' && continued.coins === 25 && continued.drillUnlocked, JSON.stringify(continued));
   await context.close();
@@ -255,7 +262,7 @@ async function talkTo(page, id) {
   await page.screenshot({ path: `${OUT}/final-landscape-spawn.png` });
   await page.evaluate(() => {
     const gs = window.__PTY_GAME__.scene.getScene('Game');
-    gs.mission.drillUnlocked = true;
+    gs.mission.states['el-mandado'].flags.drillUnlocked = true;
     gs.emitHud();
     gs.requestDrill();
   });

@@ -6,8 +6,8 @@ las veces que haga falta y produce los mismos archivos.
 
 ## Resumen
 
-- **63 PNG de juego** generados en `public/assets/`.
-- **Peso total: 42.5 KB** (0.04 MB) / presupuesto 1.2 MB.
+- **65 PNG de juego** generados en `public/assets/`.
+- **Peso total: 44.9 KB** (0.04 MB) / presupuesto 1.2 MB.
 - Contact sheet de revision: `tools/asset_sheet.png` (no se carga en el juego).
 - Todos los PNG son RGBA, paleta cerrada y sin antialiasing (alfa 0/255).
 - Sin assets externos con copyright. La fuente Press Start 2P (OFL) se conserva.
@@ -26,6 +26,8 @@ las veces que haga falta y produce los mismos archivos.
 | Edificios | `buildings/metro.png` | 80x56 | 0.7 |
 | Edificios | `buildings/minisuper.png` | 96x64 | 1.0 |
 | Edificios | `buildings/school.png` | 112x80 | 1.0 |
+| Personajes | `characters/enemy-maton-duro.png` | 48x96 | 1.2 |
+| Personajes | `characters/enemy-maton.png` | 48x96 | 1.2 |
 | Personajes | `characters/npc-ana.png` | 48x96 | 1.2 |
 | Personajes | `characters/npc-chen.png` | 48x96 | 1.3 |
 | Personajes | `characters/npc-chofer.png` | 48x96 | 1.2 |

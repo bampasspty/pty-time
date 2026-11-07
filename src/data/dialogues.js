@@ -21,6 +21,10 @@ const STEPS = new Set([
   'done',
 ]);
 
+// Paso de la misión criminal ("Los matones de la plaza"). 'locked' = todavía
+// no está disponible; 'unknown' = contexto incompleto o inválido.
+const CRIME_STEPS = new Set(['locked', 'inactive', 'deal', 'report', 'done']);
+
 // Una "página" de diálogo.
 const page = (speaker, text) => ({ speaker, text });
 
@@ -35,6 +39,8 @@ function normalizeContext(ctx) {
     step: STEPS.has(raw.step) ? raw.step : 'unknown',
     hasChancla: raw.hasChancla === true,
     drillUnlocked: raw.drillUnlocked === true,
+    crimeStep: CRIME_STEPS.has(raw.crimeStep) ? raw.crimeStep : 'unknown',
+    kills: Number.isFinite(raw.kills) ? Math.max(0, Math.floor(raw.kills)) : 0,
   };
 }
 
@@ -140,6 +146,41 @@ function pipeDialogue(ctx) {
   }
 
   if (ctx.step === 'done') {
+    if (ctx.crimeStep === 'inactive') {
+      return reply(
+        [
+          page(speaker, 'Oye, socio… ¿tú no andas buscando cómo hacerte de algo?'),
+          page(speaker, 'Unos matones se están parando en la plaza de Los Andes. Cobran hasta por pasar.'),
+          page(speaker, 'Si los sacas de ahí, el barrio te lo agradece. Y te sueltan alguito.'),
+        ],
+        'startCrime',
+      );
+    }
+
+    if (ctx.crimeStep === 'deal') {
+      return reply([
+        page(speaker, '¿Todavía están esos matones en la plaza? Mira que son varios.'),
+        page(speaker, 'Dale con cuidado, socio. Pero no te me achiques.'),
+      ]);
+    }
+
+    if (ctx.crimeStep === 'report') {
+      return reply(
+        [
+          page(speaker, '¿Ya limpiaste la plaza? ¡Epa! No me lo esperaba tan rápido.'),
+          page(speaker, 'Toma, esto es tuyo. Y de aquí en adelante, aquí tienes un socio.'),
+        ],
+        'reportCrime',
+      );
+    }
+
+    if (ctx.crimeStep === 'done') {
+      return reply([
+        page(speaker, 'En la plaza ya no se para nadie. La gente volvió a pasar tranquila.'),
+        page(speaker, 'Se corrió la voz, socio. Aquí ya saben quién eres.'),
+      ]);
+    }
+
     return reply([
       page(speaker, 'Gracias otra vez, socio. Un día de estos jugamos un picado.'),
       page(
@@ -171,6 +212,9 @@ const NEIGHBORS = {
       'find-pipe': 'Pipe pasó por aquí y se fue con un jugo para la cancha.',
       'find-chancla': 'Oye, vi algo tirado cerca de la parada de bus. Ve a ver.',
     },
+    crimeHints: {
+      deal: 'La plaza está mala desde que llegaron esos tipos. Ten cuidado, mijo.',
+    },
     drill: 'Y cuando suene el simulacro: agáchate, cúbrete y sujétate. Aquí nos ayudamos.',
   },
   melva: {
@@ -181,6 +225,9 @@ const NEIGHBORS = {
     hints: {
       'find-pipe': '¿Buscas a Pipe? Lo vi corriendo para la cancha, con una chancleta menos.',
       'find-chancla': 'Una chancleta en la parada de bus. Cosas de pelao.',
+    },
+    crimeHints: {
+      deal: 'Esos matones de la plaza no dejan ni pasar. Yo ya no voy por ahí con la cartera.',
     },
     drill: 'Eso sí, si tiembla no corras por las escaleras mecánicas. Con calma.',
   },
@@ -193,6 +240,9 @@ const NEIGHBORS = {
       'find-pipe': 'Pipe está allá, tirando al aro. Está de mal humor por la chancleta.',
       'find-chancla': 'Yo vi una chancleta cerca de la parada. No la toqué, por si acaso.',
     },
+    crimeHints: {
+      deal: 'Los matones de la plaza me quitaron el balón. Si los sacas, te lo agradezco.',
+    },
     drill: 'Yo ya practiqué: agacharse, cubrirse y sujetarse. Me salió bien.',
   },
   yolanda: {
@@ -203,6 +253,9 @@ const NEIGHBORS = {
     hints: {
       'find-pipe': 'Pipe anda en la cancha. Ese pelao no se pierde un picado.',
       'report-nena': '¿Ya terminaste el mandado? Pasa donde Nena, que te tiene tu yapa.',
+    },
+    crimeHints: {
+      deal: 'Yo ya no paso por la plaza con la cartera. Ojalá alguien les ponga freno.',
     },
     drill: 'Ten a mano una linterna, no velas. Eso lo aprendí en el simulacro.',
   },
@@ -238,6 +291,12 @@ function neighborDialogue(npcId, ctx) {
     lines.push(page(speaker, hint));
   } else if (ctx.drillUnlocked && character.drill) {
     lines.push(page(speaker, character.drill));
+  }
+
+  // Pista de la misión criminal mientras está activa (nunca pasa de 3 páginas).
+  const crimeHint = character.crimeHints?.[ctx.crimeStep];
+  if (crimeHint && lines.length < 3) {
+    lines.push(page(speaker, crimeHint));
   }
 
   return reply(lines);

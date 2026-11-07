@@ -62,7 +62,24 @@ export class UIScene extends Phaser.Scene {
     this.hudLabel = this.add.text(0, 0, 'MISIÓN', textStyle(10, CSS.yellow)).setOrigin(0, 0);
     this.hudObjective = this.add.text(0, 0, '', textStyle(13, CSS.white)).setOrigin(0, 0);
     this.coinsText = this.add.text(0, 0, 'YAPA 0', textStyle(11, CSS.yellow)).setOrigin(1, 0).setDepth(1000);
-    this.hudContainer.add([this.hudBg, this.hudAccent, this.hudLabel, this.hudObjective]);
+
+    // Panel de combate dentro del mismo HUD: vida y munición.
+    this.hpBarBg = this.add
+      .rectangle(0, 0, 96, 9, 0x2a1420, 1)
+      .setOrigin(0, 0)
+      .setStrokeStyle(1, 0x46557a, 1);
+    this.hpBarFill = this.add.rectangle(0, 0, 96, 9, COLORS.red, 1).setOrigin(0, 0);
+    this.combatText = this.add.text(0, 0, 'LA 9 8/24', textStyle(8, CSS.soft)).setOrigin(0, 0);
+
+    this.hudContainer.add([
+      this.hudBg,
+      this.hudAccent,
+      this.hudLabel,
+      this.hudObjective,
+      this.hpBarBg,
+      this.hpBarFill,
+      this.combatText,
+    ]);
   }
 
   createAreaBanner() {
@@ -118,6 +135,15 @@ export class UIScene extends Phaser.Scene {
     this.helpButton = this.createTextButton(0, 0, 40, 32, '?', () => this.openHelp(), false, 11);
     this.drillButton = this.createTextButton(0, 0, 120, 32, 'SIMULACRO', () => events.emit('drill:request'), true, 7);
     this.drillButton.container.setVisible(false);
+
+    this.fireButton = this.createCircleButton(0, 0, 31, 'FUEGO', () => {
+      events.emit('ui:fire');
+    }, null, null, 8);
+    this.fireButton.container.setVisible(false);
+    this.reloadButton = this.createCircleButton(0, 0, 19, 'R', () => {
+      events.emit('ui:reload');
+    }, null, null, 9);
+    this.reloadButton.container.setVisible(false);
   }
 
   createCircleButton(x, y, radius, label, onClick, onDown, onUp, fontSize = 8) {
@@ -216,6 +242,7 @@ export class UIScene extends Phaser.Scene {
     this.onMissionComplete = (data) => this.showMissionComplete(data);
     this.onHelp = () => this.openHelp();
     this.onBusy = () => this.refreshControls();
+    this.onPlayerDown = () => this.showPlayerDown();
 
     events.on('hud:update', this.onHudUpdate);
     events.on('hud:toast', this.onToast);
@@ -228,6 +255,7 @@ export class UIScene extends Phaser.Scene {
     events.on('mission:complete', this.onMissionComplete);
     events.on('ui:help', this.onHelp);
     events.on('ui:busy', this.onBusy);
+    events.on('player:down', this.onPlayerDown);
 
     this.input.on('pointerdown', this.onPointerDown, this);
     this.input.on('pointermove', this.onPointerMove, this);
@@ -262,6 +290,8 @@ export class UIScene extends Phaser.Scene {
       this.dialogue.advance();
       return;
     }
+    // El joystick es sólo táctil: en computadora el clic izquierdo dispara.
+    if (!this.isTouch && pointer.pointerType !== 'touch') return;
     if (pointer.x < this.scale.width * 0.5 && pointer.y > this.scale.height * 0.45) {
       this.startJoystick(pointer);
     }
@@ -326,6 +356,24 @@ export class UIScene extends Phaser.Scene {
     this.hudObjective.setText(this.hudState?.objective ?? '');
     this.coinsText.setText(`YAPA ${this.hudState?.coins ?? 0}`);
     this.layoutHud();
+    this.updateCombatHud();
+  }
+
+  updateCombatHud() {
+    if (!this.hpBarFill) return;
+    const hp = Number(this.hudState?.hp ?? 100);
+    const maxHp = Math.max(1, Number(this.hudState?.maxHp ?? 100));
+    const ratio = clamp(hp / maxHp, 0, 1);
+    this.hpBarFill.setSize(Math.max(0, Math.round(this.hpBarBg.width * ratio)), 9);
+    const color = ratio > 0.5 ? COLORS.green : ratio > 0.25 ? COLORS.yellow : COLORS.red;
+    this.hpBarFill.setFillStyle(color, 1);
+
+    const isMelee = this.hudState?.weaponType === 'melee';
+    const ammo = isMelee
+      ? 'CUERPO A CUERPO'
+      : `${this.hudState?.ammo ?? 0}/${this.hudState?.reserve ?? 0}`;
+    const label = this.hudState?.reloading ? 'RECARGANDO…' : ammo;
+    this.combatText.setText(`${this.hudState?.weapon ?? 'LA 9'} · ${label}`);
   }
 
   layoutHud() {
@@ -337,12 +385,21 @@ export class UIScene extends Phaser.Scene {
     this.hudObjective.setStyle(textStyle(objSize, CSS.white));
     const wrap = Math.min(360, Math.max(160, W * (W < 520 ? 0.44 : 0.55)));
     this.hudObjective.setWordWrapWidth(wrap, true);
-    const h = 12 + this.hudLabel.height + 6 + this.hudObjective.height + 10;
-    const w = Math.min(380, Math.max(200, this.hudObjective.width + 28));
-    this.hudBg.setSize(w, h);
-    this.hudAccent.setSize(3, h);
+
     this.hudLabel.setPosition(12, 8);
     this.hudObjective.setPosition(12, 8 + this.hudLabel.height + 6);
+    const combatY = 8 + this.hudLabel.height + 6 + this.hudObjective.height + 8;
+
+    this.combatText.setStyle(textStyle(clamp(Math.round(H / 60), 8, 11), CSS.soft));
+    const w = Math.min(380, Math.max(200, Math.max(this.hudObjective.width + 28, this.combatText.width + 28)));
+    const barW = Math.max(64, Math.min(96, w - 24));
+    this.hpBarBg.setSize(barW, 9).setPosition(12, combatY);
+    this.hpBarFill.setPosition(12, combatY);
+    this.combatText.setPosition(12, combatY + 12);
+
+    const h = combatY + 12 + this.combatText.height + 8;
+    this.hudBg.setSize(w, h);
+    this.hudAccent.setSize(3, h);
     this.hudContainer.setPosition(8, 8);
     this.coinsText.setStyle(textStyle(clamp(Math.round(H / 54), 9, 12), CSS.yellow));
   }
@@ -414,6 +471,9 @@ export class UIScene extends Phaser.Scene {
     }
 
     this.helpButton.container.setVisible(!busy);
+    const showCombat = !busy && Boolean(this.isTouch);
+    this.fireButton.container.setVisible(showCombat);
+    this.reloadButton.container.setVisible(showCombat);
     const showDrill = this.hudState?.drillUnlocked && !busy && !this.drillState?.active && !this.dialogue?.isOpen;
     this.drillButton.container.setVisible(Boolean(showDrill));
     this.crouchButton.container.setVisible(Boolean(this.drillState?.active && this.drillState?.showCrouch));
@@ -430,13 +490,14 @@ export class UIScene extends Phaser.Scene {
     if (this.modal.isOpen) return;
     this.modal.open({
       title: 'CÓMO JUGAR',
-      body: 'San Miguelito te espera. Explora, saluda y completa el mandado de Doña Nena.',
+      body: 'San Miguelito te espera. Camina, dispara y hazte respetar en el barrio.',
       bullets: [
         'WASD o flechas: caminar. En el teléfono usa el joystick.',
+        'CLIC izquierdo o J: disparar. R: recargar.',
         'E, ESPACIO o el botón HABLAR: conversar y avanzar diálogos.',
         'C o CUBRIRSE: agacharte y protegerte.',
-        'Sigue la estrella amarilla para saber con quién hablar.',
-        'El botón SIMULACRO se desbloquea al terminar la misión.',
+        'Sigue la estrella amarilla para saber con quién hablar o dónde pelear.',
+        'El botón SIMULACRO se desbloquea al terminar el mandado de Doña Nena.',
       ],
       disclaimer: 'El simulacro de terremoto es ficción dentro del juego. No es una alerta real.',
       buttons: [{ label: 'CERRAR', value: 'close', primary: true }],
@@ -518,16 +579,34 @@ export class UIScene extends Phaser.Scene {
 
   showMissionComplete(data) {
     const reward = data.reward?.coins ?? 0;
+    const bullets = Array.isArray(data.bullets) && data.bullets.length
+      ? [...data.bullets]
+      : [`+${reward} de yapa`, 'El barrio te lo agradece'];
+    if (data.drillUnlocked) bullets.push('Simulacro de terremoto disponible');
     this.modal.open({
       title: '¡MISIÓN COMPLETADA!',
-      body: 'Le llevaste la chancleta a Pipe y Doña Nena te dio la yapa. El barrio está agradecido.',
-      bullets: [
-        `+${reward} yapa`,
-        'Simulacro de terremoto desbloqueado',
-        'Puedes repetirlo cuando quieras desde SIMULACRO',
-      ],
+      body: data.body ?? 'Terminaste el trabajo y el barrio lo notó.',
+      bullets,
       buttons: [{ label: 'SEGUIR', value: 'ok', primary: true }],
       onClose: () => this.refreshControls(),
+    });
+  }
+
+  showPlayerDown() {
+    if (this.modal.isOpen) return;
+    this.modal.open({
+      title: 'TE TUMBARON',
+      body: 'Los matones del barrio te dejaron en el suelo. Pero esto no se acaba aquí.',
+      bullets: [
+        'Reapareces en el punto de partida con la vida completa.',
+        'La munición que te quedaba se mantiene.',
+      ],
+      buttons: [{ label: 'REAPARECER', value: 'ok', primary: true }],
+      dismissible: false,
+      onClose: () => {
+        events.emit('player:respawn');
+        this.refreshControls();
+      },
     });
   }
 
@@ -557,6 +636,8 @@ export class UIScene extends Phaser.Scene {
     this.joyThumb.setPosition(this.joyCenter.x, this.joyCenter.y);
     this.positionCircleButton(this.interactButton, width - 58, height - 58);
     this.positionCircleButton(this.crouchButton, width - 62, height - 62);
+    this.positionCircleButton(this.fireButton, width - 58, height - 138);
+    this.positionCircleButton(this.reloadButton, width - 126, height - 104);
     this.helpButton.container.setPosition(width - 30, 30);
     this.drillButton.container.setPosition(width - 70, 72);
     this.coinsText.setPosition(width - 62, 24);
@@ -585,6 +666,7 @@ export class UIScene extends Phaser.Scene {
     events.off('mission:complete', this.onMissionComplete);
     events.off('ui:help', this.onHelp);
     events.off('ui:busy', this.onBusy);
+    events.off('player:down', this.onPlayerDown);
     this.dialogue?.destroy();
     this.modal?.destroy();
   }

@@ -345,6 +345,15 @@ export const SAN_MIGUELITO = {
     { id: 'chancla', kind: 'chancla', x: 680, y: 502 },
   ],
 
+  // Matones del Slice A: se paran por la plaza de Los Andes (misión criminal).
+  // id = tipo de enemigo (ver src/data/enemies.js).
+  enemies: [
+    { id: 'maton', x: 128, y: 492, facing: 'down' },
+    { id: 'maton', x: 152, y: 500, facing: 'left' },
+    { id: 'maton-duro', x: 120, y: 528, facing: 'up' },
+    { id: 'maton', x: 64, y: 528, facing: 'right' },
+  ],
+
   zones: [
     // Zonas abiertas (refugio del simulacro de terremoto).
     { id: 'cancha', name: 'Cancha de San Isidro', type: 'open', x: 592, y: 64, w: 224, h: 160 },

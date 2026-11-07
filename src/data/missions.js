@@ -1,22 +1,124 @@
-// Misión principal de PTY Time.
-// El paso inicial es 'inactive' (antes de hablar con Doña Nena); al aceptar el
-// mandado, el motor de juego usa MISSION.startStep y avanza con MISSION_STEP_ORDER.
+// Registro de misiones de PTY Time.
+//
+// El motor de misiones (src/systems/MissionSystem.js) es GENÉRICO: lee estas
+// definiciones y no conoce ninguna misión en concreto. Para añadir una misión
+// nueva basta con registrarla aquí y darle un NPC que devuelva su acción.
+//
+// Estructura:
+//   initialStep    paso con el que arranca (locked = se desbloquea sola)
+//   startStep      paso al aceptar la misión
+//   requires       { mission, step } -> se desbloquea cuando esa misión llega a ese paso
+//   steps          textos de objetivo por paso (incluye inactive y done)
+//   actions        { accion: { from, to, require?, set?, clear?, toast?, reward? } }
+//   collectibles   objetos recogibles que avanzan la misión
+//   marker         NPC que marca la estrella de objetivo por paso
+//   killTarget     misión de limpieza: cuenta enemigos derrotados
+//   completion     texto del modal de misión completada
+//   reward         recompensa por defecto (también puede ir por acción)
 
-export const MISSION = {
-  id: 'el-mandado',
-  title: 'El mandado de Doña Nena',
-  description: 'Doña Nena necesita ayuda con un mandado y su nieto Pipe no aparece.',
-  startStep: 'find-pipe',
-  steps: {
-    'find-pipe': 'Busca a Pipe en la cancha de San Isidro.',
-    'find-chancla': 'Encuentra la chancleta de Pipe cerca de la parada de bus.',
-    'return-pipe': 'Devuélvele la chancleta a Pipe en la cancha.',
-    'report-nena': 'Regresa donde Doña Nena para contarle que todo está bien.',
-    done: 'Misión completada. Simulacro de terremoto desbloqueado.',
-  },
-  // solo para el estado inicial, antes de hablar con Nena:
-  availableObjective: 'Habla con Doña Nena en la fonda.',
-  reward: { coins: 25, unlock: 'earthquake-drill' },
-};
+export const MISSION_CATEGORIES = Object.freeze({
+  historia: 'Historia principal',
+  secundaria: 'Secundaria',
+  crimen: 'Crimen',
+  supervivencia: 'Supervivencia',
+  exploracion: 'Exploración',
+  evento: 'Evento especial',
+});
 
-export const MISSION_STEP_ORDER = ['find-pipe', 'find-chancla', 'return-pipe', 'report-nena', 'done'];
+export const MISSIONS = Object.freeze({
+  'el-mandado': Object.freeze({
+    id: 'el-mandado',
+    category: 'secundaria',
+    title: 'El mandado de Doña Nena',
+    description: 'Doña Nena necesita ayuda con un mandado y su nieto Pipe no aparece.',
+    initialStep: 'inactive',
+    startStep: 'find-pipe',
+    requires: null,
+    steps: Object.freeze({
+      inactive: 'Habla con Doña Nena en la fonda.',
+      'find-pipe': 'Busca a Pipe en la cancha de San Isidro.',
+      'find-chancla': 'Encuentra la chancleta de Pipe cerca de la parada de bus.',
+      'return-pipe': 'Devuélvele la chancleta a Pipe en la cancha.',
+      'report-nena': 'Regresa donde Doña Nena para contarle que todo está bien.',
+      done: 'Misión completada. El barrio está agradecido.',
+    }),
+    order: Object.freeze(['find-pipe', 'find-chancla', 'return-pipe', 'report-nena', 'done']),
+    actions: Object.freeze({
+      startMission: Object.freeze({ from: 'inactive', to: 'find-pipe', toast: 'Nueva misión: El mandado de Doña Nena' }),
+      pipeMet: Object.freeze({ from: 'find-pipe', to: 'find-chancla', toast: 'Nuevo objetivo: busca la chancleta' }),
+      giveChancla: Object.freeze({
+        from: 'return-pipe',
+        to: 'report-nena',
+        require: 'hasChancla',
+        clear: Object.freeze(['hasChancla']),
+        toast: 'Pipe ya tiene su chancleta',
+      }),
+      finishMission: Object.freeze({
+        from: 'report-nena',
+        to: 'done',
+        toast: '¡Misión completada!',
+        reward: Object.freeze({ coins: 25, unlock: 'drill' }),
+        kind: 'finish',
+      }),
+    }),
+    collectibles: Object.freeze({
+      chancla: Object.freeze({
+        from: 'find-chancla',
+        to: 'return-pipe',
+        flag: 'hasChancla',
+        toast: 'Recogiste la chancleta de Pipe. Llévasela.',
+      }),
+    }),
+    marker: Object.freeze({ inactive: 'nena', 'find-pipe': 'pipe', 'return-pipe': 'pipe', 'report-nena': 'nena' }),
+    killTarget: null,
+    completion: Object.freeze({
+      body: 'Le llevaste la chancleta a Pipe y Doña Nena te dio la yapa. El barrio está agradecido.',
+      bullets: Object.freeze(['+25 de yapa', 'Simulacro de terremoto desbloqueado']),
+    }),
+  }),
+
+  'limpia-la-cancha': Object.freeze({
+    id: 'limpia-la-cancha',
+    category: 'crimen',
+    title: 'Los matones de la plaza',
+    description: 'Unos matones andan cobrando por la plaza de Los Andes. Pipe sabe dónde se paran.',
+    initialStep: 'locked',
+    startStep: 'deal',
+    requires: Object.freeze({ mission: 'el-mandado', step: 'done' }),
+    steps: Object.freeze({
+      inactive: 'Habla con Pipe: los matones andan cobrando en la plaza.',
+      deal: 'Encuentra y tumba a los matones de la plaza.',
+      report: 'Vuelve con Pipe y cuéntale que la plaza quedó limpia.',
+      done: 'La plaza quedó tranquila. El barrio ya te conoce.',
+    }),
+    order: Object.freeze(['deal', 'report', 'done']),
+    actions: Object.freeze({
+      startCrime: Object.freeze({ from: 'inactive', to: 'deal', toast: 'Nueva misión: Los matones de la plaza' }),
+      reportCrime: Object.freeze({
+        from: 'report',
+        to: 'done',
+        toast: '¡Misión completada!',
+        reward: Object.freeze({ coins: 60, reputation: 10 }),
+        kind: 'finish',
+      }),
+    }),
+    collectibles: Object.freeze({}),
+    marker: Object.freeze({ inactive: 'pipe', report: 'pipe', done: 'pipe' }),
+    killTarget: Object.freeze({
+      count: 3,
+      from: 'deal',
+      to: 'report',
+      toast: 'La plaza quedó limpia. Vuelve con Pipe.',
+    }),
+    completion: Object.freeze({
+      body: 'Tumbaste a los matones de la plaza y Pipe te pasó la voz al barrio. Aquí ya saben quién eres.',
+      bullets: Object.freeze(['+60 de yapa', '+10 de reputación en el barrio']),
+    }),
+  }),
+});
+
+export const MISSION_ORDER = Object.freeze(['el-mandado', 'limpia-la-cancha']);
+
+// Compatibilidad con código/versiones anteriores que importaban MISSION.
+export const MISSION = MISSIONS['el-mandado'];
+export const MISSION_STEP_ORDER = MISSIONS['el-mandado'].order;

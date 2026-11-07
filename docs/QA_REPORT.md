@@ -1,117 +1,85 @@
-# QA REPORT · PTY Time v0.1.0
+# QA REPORT · PTY Time v0.2.0 (Slice A)
 
-Fecha: 2026-11-06 · Navegador usado: Microsoft Edge headless (Playwright
-`playwright-core`), Windows. Servidor: Vite 7 en `http://127.0.0.1:5173`.
+Fecha: 2026-11-07 · Navegador: Microsoft Edge headless (Playwright `playwright-core`),
+Windows. Servidor: Vite 7 en `http://127.0.0.1:5173`.
 
-## 1. Pruebas automáticas (`pnpm test`)
+Alcance de esta entrega: **núcleo jugable del Slice A** — combate, matones con IA, misión
+criminal, vida/munición, guardado v2 y controles táctiles de disparo.
 
-Resultado: **24/24 pruebas pasan** con `node --test`.
+## 1. Pruebas automáticas (`node --test "tests/*.test.js"`)
 
-| Archivo | Cobertura |
-|---|---|
-| `tests/mission.test.js` | flujo completo, acciones fuera de orden, chancleta, simulacro, guardado |
-| `tests/dialogues.test.js` | 8 NPCs × 6 pasos × hasChancla × drillUnlocked; acciones exactas; NPC desconocido |
-| `tests/save.test.js` | ida/vuelta localStorage, sanitización, JSON corrupto, coherencia |
-| `tests/map.test.js` | dimensiones, kinds, 8 NPCs, chancleta, zonas abiertas, ground rects, cámara |
-| `tests/assets.test.js` | 63 PNG presentes y con tamaños exactos según `defs.js`/contrato; peso total |
+Resultado: **52/52 pruebas pasan**.
 
-## 2. Pruebas E2E de juego (`tools/qa-final.mjs`)
+| Archivo | Pruebas | Cobertura |
+|---|---|---|
+| `tests/mission.test.js` | 8 | mandado completo, desbloqueo de la misión criminal, conteo de enemigos, recompensas, marcador de NPC, acciones fuera de orden |
+| `tests/dialogues.test.js` | 7 | 8 NPCs × 6 pasos × 5 pasos criminales; acciones exactas; contexto inválido |
+| `tests/save.test.js` | 9 | ida/vuelta v2, **migración v1 → v2**, sanitización, JSON corrupto, `hasProgress` |
+| `tests/combat.test.js` | 9 | cadencia, cargador, recarga, arma cuerpo a cuerpo, daño/muerte/reaparición, ida y vuelta al guardado |
+| `tests/enemyAI.test.js` | 8 | estados idle → chase → attack → dead, cooldown de ataque, alerta por ruido, mirada, datos de enemigos |
+| `tests/map.test.js` | 6 | dimensiones, kinds, NPCs, chancleta, zonas, **spawns de matones** |
+| `tests/assets.test.js` | 5 | 65 PNG, hojas de personaje y **enemigos 48×96**, retratos, edificios/props, presupuesto |
 
-Resultado: **20/20 comprobaciones pasan, 0 errores de consola/página**.
+## 2. QA E2E de combate (`tools/qa-combat.mjs`)
 
-### Escritorio 1280×720
+Resultado: **18/18 comprobaciones pasan, 0 errores de consola/página**.
 
-- Pantalla de título y creación de personaje.
-- FPS medidos: **52.2 FPS** (`actualFps`, 121 frames en 2 s) con el mapa completo.
-- Misión: Nena → Pipe → chancleta → Pipe → Nena:
-  - `inactive → find-pipe → find-chancla → return-pipe → report-nena → done`.
-  - Chancleta visible durante `find-chancla`; se recoge; Pipe la recibe.
-  - Recompensa: +25 yapa y `drillUnlocked=true`.
-- Modal de misión completada abre, oculta HUD, el clic en SEGUIR lo cierra y aparece
-  el botón SIMULACRO.
-- Simulacro:
-  - intro con disclaimer textual exacto;
-  - fases reales cubrirse → sujetarse → evacuar;
-  - zona segura (cancha) detectada;
-  - resultado con recomendaciones, disclaimer y fuente SINAPROC;
-  - `drillCompleted=true`.
-- Recarga de página: el título ofrece CONTINUAR y restaura paso `done`, 25 de yapa,
-  simulacro desbloqueado y variante del personaje.
+- Spawn de 4 matones y HUD con vida (100) y munición (8/24).
+- Disparo: consume munición, la bala golpea al matón y el HUD se actualiza.
+- Recarga manual (`R` / botón): el cargador vuelve a 8 y baja la reserva.
+- Mandado de Doña Nena completo → +25 de yapa y simulacro desbloqueado.
+- La misión criminal se abre al terminar el mandado; `startCrime` revive a los 4 matones.
+- Tres matones derrotados → contador `3/3` → paso `report`.
+- `reportCrime` → +60 de yapa, +10 de reputación y modal de misión completada.
+- Vida a 0 → modal **TE TUMBARON** → REAPARECER restaura vida completa.
+- Guardado v2 en `localStorage`: versión 2, misiones `done`, 85 de yapa, 3 derrotas.
+- Móvil táctil 844×390: botones FUEGO y R visibles junto al joystick.
+- Rendimiento: **59 FPS** en escritorio durante el combate.
 
-### Móvil retrato 390×844 (táctil)
+## 3. QA E2E de regresión (`tools/qa-final.mjs`)
 
-- Título: tagline cabe en pantalla (289 px de ancho en 390 px).
-- Personaje: controles y botón "ENTRAR AL BARRIO" visibles.
-- Juego: joystick visible, banner SAN MIGUELITO escalado (277 px en 390 px).
-- HUD no choca con el botón SIMULACRO (`hudRight=208`, `drillLeft=260`).
-- Botón contextual HABLAR aparece y, al tocarlo con el mouse, abre el diálogo.
-- Sin errores de página.
+Resultado: **20/20 comprobaciones pasan, 0 errores**. La demo anterior sigue funcionando:
 
-### Móvil horizontal 844×390
+- Título, creación de personaje, FPS (59.1 tras calentar el primer frame).
+- Misión del mandado paso a paso con la API nueva de misiones.
+- Modal de recompensa, desbloqueo del simulacro y simulacro completo (cubrirse →
+  sujetarse → evacuar) con disclaimer y fuente SINAPROC.
+- CONTINUAR restaura misión `done`, 25 de yapa y simulacro desde el guardado v2.
+- Móvil retrato: joystick, banners, HABLAR y diálogos.
+- Móvil horizontal: el modal largo del simulacro cabe en 390 px de alto.
 
-- Modal largo de resultado del simulacro cabe dentro de la pantalla
-  (`top=8`, `bottom=382`, `screenH=390`); contenido y botón ENTENDIDO visibles.
-- Fases del simulacro completadas y modal abierto.
-
-## 3. Rendimiento
-
-Medido con Edge headless + GPU (`--enable-gpu --ignore-gpu-blocklist`):
+## 4. Rendimiento
 
 | Viewport | FPS |
 |---|---|
-| 1280×720 | 52.2 |
-| 844×390 | 50–57 (mediciones sucesivas) |
+| 1280×720 (con 4 matones y combate) | 51–59 |
+| 844×390 (móvil horizontal) | 50–57 |
 
-Notas:
+- Assets de juego: **44.9 KB** en 65 PNG (2 hojas nuevas de enemigo).
+- Bundle de producción: **1,329.32 KB** (369.58 KB gzip).
+- Efectos de combate por texturas en memoria (sin PNG extra).
+- Sigue pendiente la validación en un teléfono físico de gama baja.
 
-- Con SwiftShader (sin GPU) bajó a 11–12 FPS, como era de esperar por renderizado
-  software; no es representativo de un teléfono con WebGL.
-- Assets 42.5 KB; bundle JS 1.30 MB (≈360 KB gzip). Un tilemap de suelo y ~200 sprites.
-- Falta la validación en un dispositivo físico de gama baja.
+## 5. Build de producción
 
-## 4. Build de producción y preview
+- `pnpm build` → OK. `dist/index.html` 2.11 KB, JS 1,329.32 KB (gzip 369.58 KB).
+- **La URL pública https://pty-time.vercel.app sigue sirviendo la v0.1.0**: esta entrega
+  está confirmada en local y queda lista para desplegar (`pnpm deploy:vercel` o push).
 
-- `pnpm build` → **exit 0**. Salida: `dist/index.html` 2.11 KB, JS 1,300.31 KB
-  (gzip 360.42 KB).
-- `pnpm preview --port 4173` + Edge: 0 errores de consola, 0 respuestas 404,
-  74 texturas en título y 88 en juego, 8 NPCs, 149 colliders, 49 FPS a 1280×720.
-- El build se sirve desde `dist/` con rutas absolutas de assets (`/assets/...`), listo
-  para raíz de dominio en Vercel.
-- **Despliegue público:** https://pty-time.vercel.app (proyecto `gestion14/pty-time`).
-  Verificado desde la URL pública: HTTP 200, 0 errores de consola, 0 respuestas 404,
-  58 FPS a 1280×720.
-- **Auto-deploy GitHub → Vercel:** verificado con el push del commit `406197d`; Vercel
-  creó el deployment de producción `pty-time-m0jxd769w-gestion14.vercel.app` (READY).
+## 6. Capturas (`qa/`, ignorado por git)
 
-## 5. Criterios del MVP (documento maestro)
+- `combat-map.png` — HUD con vida/munición al entrar al barrio.
+- `combat-crime.png` — matones en la plaza de Los Andes y objetivo `report`.
+- `combat-ko.png` — modal TE TUMBARON.
+- `combat-mobile.png` — botones FUEGO y R en móvil horizontal.
+- Capturas de regresión: `final-desktop-*.png`, `final-mobile-*.png`.
 
-| Criterio | Resultado |
-|---|---|
-| El juego abre desde enlace web | Sí: https://pty-time.vercel.app |
-| Se puede jugar desde teléfono | Verificado en emulación táctil; joystick y botones funcionan |
-| Personaje se mueve correctamente | Sí (teclado y joystick) |
-| Colisiones funcionales | Sí; verificado contra un edificio (se detiene en el borde) |
-| Cámara sigue al personaje | Sí; zoom entero 2–4 |
-| Tres NPCs interactivos | 8 NPCs interactivos |
-| Misión completable | Sí, flujo completo verificado |
-| Coherencia visual | Colección generada con paleta, outlines y perspectiva comunes |
-| Sin errores críticos | 0 errores en la sesión E2E final |
-| Rendimiento aceptable | 50–57 FPS en Edge con GPU; físico pendiente |
-| Demo publicada en Vercel | **Sí:** https://pty-time.vercel.app |
+## 7. Bloqueos / riesgos conocidos
 
-## 6. Capturas
-
-Generadas en `qa/` (ignorado por git):
-
-- `final-desktop-spawn.png`, `final-desktop-dialogue.png`
-- `final-desktop-mission.png`, `final-desktop-drill.png`, `final-desktop-drill-result.png`
-- `final-mobile-title.png`, `final-mobile-character.png`, `final-mobile-spawn.png`
-- `final-landscape-drill-result.png`
-
-## 7. Bloqueos / riesgos
-
-- Repositorio remoto: https://github.com/bampasspty/pty-time (rama `main`).
-- Hardware físico de gama baja no probado.
-- Sin audio en esta entrega.
-- El simulacro no debe presentarse como alerta real: el disclaimer está en intro,
-  banner y resultado.
+1. **La IA de matones no evalúa línea de visión**: persiguen aunque haya un edificio en
+   medio (la física les impide atravesarlo, pero pueden quedarse empujando).
+2. **8 direcciones visuales sigue pendiente**: el movimiento diagonal existe y el
+   apuntado es libre, pero las hojas de personaje mantienen 4 filas.
+3. Sin audio todavía.
+4. El combate se probó en emulación táctil; falta el teléfono físico.
+5. Los matones reaparecen al aceptar la misión criminal; no hay respawn durante el juego.

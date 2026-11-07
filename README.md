@@ -11,11 +11,26 @@ teléfono.
 > [`docs/MASTER_DOC.md`](docs/MASTER_DOC.md) y la auditoría de adaptación, con lo que ya
 > existe y lo que falta, está en [`docs/V1.2_AUDIT.md`](docs/V1.2_AUDIT.md).
 
-## Estado de la demo actual (v0.1.0)
+## Estado de la demo actual (v0.2.0 · Slice A)
 
-La demo publicada sigue siendo **San Miguelito explorable** (inspirado en San Isidro, Los
-Andes y sus alrededores). Es la base técnica sobre la que se construye la nueva
-dirección: mapa, NPC, diálogos, misión, guardado y controles táctiles ya funcionan.
+La versión jugable ya incluye el **núcleo de acción del Slice A**:
+
+- **Combate**: pistola «LA 9» con cargador, reserva, recarga y cadencia; puño como arma
+  cuerpo a cuerpo; balas, fogonazos, impactos y sacudida de cámara moderada.
+- **Matones con IA**: 4 enemigos (matón y matón jefe) con estados idle → persecución →
+  ataque, reacción a los disparos y vida propia.
+- **Vida y munición**: barra de vida, daño, modal de KO y reaparición; HUD integrado.
+- **Misión criminal**: *Los matones de la plaza* (se abre al terminar el mandado):
+  derriba a 3 matones y vuelve con Pipe para cobrar 60 de yapa y reputación.
+- **Guardado v2** con vida, munición, yapa, reputación y estado de todas las misiones.
+  Los guardados de la v0.1.0 se migran solos.
+- **Controles táctiles** de combate: FUEGO (apunta al matón más cercano) y R.
+
+Sigue la base anterior: mapa de San Miguelito, 8 NPCs con diálogos, mandado de Doña Nena,
+simulacro de terremoto con PTY Alerta y guardado local.
+
+> **Estado de publicación:** https://pty-time.vercel.app sirve todavía la **v0.1.0**.
+> Esta v0.2.0 está verificada en local (52/52 pruebas, QA E2E) y lista para desplegar.
 
 > **Evento sísmico:** el simulacro de terremoto es ficción dentro del videojuego. No es
 > una alerta real, no se conecta a sistemas de monitoreo y no sustituye información
@@ -37,21 +52,23 @@ HTTP 200, 0 errores, 0 assets faltantes y 58 FPS en Edge con GPU.
 
 ## Estado
 
-Demo jugable completa (Entrega A). Incluye:
+Demo jugable (Entrega A + núcleo del Slice A). Incluye:
 
 - Pantalla de inicio, ayuda y creación de personaje (2 cuerpos × 4 colores de camisa).
-- Personaje controlable en 4 direcciones, con animación de caminar y profundidad.
+- Personaje controlable, con animación de caminar y profundidad.
 - Mapa de San Miguelito de 64 × 44 tiles: avenida, calle Los Andes, aceras, escaleras,
   cancha, fonda, minisúper, metro, parada, escuela, casas y apartamentos.
 - Colisiones con edificios, mobiliario y límites del mundo; cámara que sigue al jugador.
 - 8 NPCs con diálogos propios y paseo ligero.
-- Misión principal **El mandado de Doña Nena** con 5 pasos y recompensa.
-- Chancleta de Pipe como objeto de misión.
-- Guardado automático en `localStorage` y opción CONTINUAR.
+- Misión **El mandado de Doña Nena** con 5 pasos y recompensa.
+- Misión criminal **Los matones de la plaza** con combatientes y recompensa.
+- Combate cenital con pistola, puño, munición, recarga y enemigos con IA.
+- Vida, daño, KO y reaparición; barra de vida y munición en el HUD.
+- Guardado automático v2 en `localStorage` (migra partidas v1) y opción CONTINUAR.
 - Simulacro de terremoto desbloqueable: cubrirse, sujetarse y evacuar a zona abierta,
   con advertencia visible y recomendaciones educativas.
-- HUD de misión, yapa, ayuda, controles táctiles (joystick + botones) y toasts.
-- Assets de pixel art generados por código (63 PNG, 42.5 KB) y fuente Press Start 2P.
+- HUD de misión, yapa y combate; ayuda, controles táctiles (joystick + botones) y toasts.
+- Assets de pixel art generados por código (65 PNG, 44.9 KB) y fuente Press Start 2P.
 
 ## Requisitos
 
@@ -79,21 +96,36 @@ pnpm test       # pruebas unitarias y de assets (node:test)
 | Acción | Computadora | Teléfono |
 |---|---|---|
 | Caminar | WASD o flechas | Joystick virtual (abajo-izquierda) |
+| Apuntar | Ratón | Automático al matón más cercano |
+| Disparar | Clic izquierdo o J | Botón FUEGO |
+| Recargar | R | Botón R |
 | Hablar / recoger | E, ESPACIO, ENTER o botón HABLAR | Botón HABLAR |
 | Agacharse / cubrirse | C o botón CUBRIRSE durante el simulacro | Botón CUBRIRSE |
 | Ayuda | ? o ESC | Botón ? |
 | Simulacro | Botón SIMULACRO (cuando está desbloqueado) | Botón SIMULACRO |
 
 La estrella amarilla marca al NPC del objetivo actual. El HUD superior muestra la
-misión y la yapa acumulada.
+misión, la vida, el arma con su munición y la yapa acumulada.
 
-## Juego: misión y simulacro
+## Juego: misiones, combate y simulacro
+
+### El mandado de Doña Nena
 
 1. Habla con **Doña Nena** en la fonda para aceptar el mandado.
 2. Busca a **Pipe** en la cancha de San Isidro.
 3. Encuentra su **chancleta** cerca de la parada de bus.
 4. Devuélvesela a Pipe y vuelve con Nena.
 5. Nena te da **25 de yapa** y desbloquea el **simulacro de terremoto**.
+
+### Los matones de la plaza (misión criminal)
+
+1. Al terminar el mandado, **Pipe** te cuenta que unos matones cobran por la plaza de
+   Los Andes.
+2. Acepta la misión: los 4 matones aparecen en la plaza (esquina suroeste del mapa).
+3. Tumba a **3** con la pistola o el puño; el HUD lleva la cuenta.
+4. Vuelve con Pipe: **+60 de yapa** y **+10 de reputación** en el barrio.
+
+Si te tumban, reapareces en el punto de partida con la vida completa.
 
 Durante el simulacro el juego muestra el aviso:
 
@@ -112,32 +144,40 @@ src/
 ├── main.js                 configuración de Phaser y arranque
 ├── config.js               constantes visuales, cámara, tipografía
 ├── scenes/
-│   ├── BootScene.js        carga de assets + animaciones
+│   ├── BootScene.js        carga de assets, animaciones y texturas de combate
 │   ├── TitleScene.js       pantalla de inicio
 │   ├── CharacterScene.js   creación de personaje
-│   ├── GameScene.js        mundo, jugador, NPCs, misión, simulacro
+│   ├── GameScene.js        mundo, jugador, NPCs, misiones, combate y simulacro
 │   └── UIScene.js          HUD, diálogos, modales, controles táctiles
-├── entities/               Player, NPC
-├── systems/                MissionSystem, SaveSystem, QuakeDrill, EventBus, InputState
+├── entities/               Player, NPC, Enemy, Bullet
+├── systems/                MissionSystem, CombatSystem, EnemyAI, SaveSystem,
+│                           QuakeDrill, EventBus, InputState
 ├── world/                  mapa de San Miguelito, defs y MapBuilder
 ├── ui/                     DialogueBox, Modal, PixelButton, Backdrop
-└── data/                   NPCs, diálogos, misión, contenido del simulacro
-public/assets/              tiles, personajes, edificios, props, UI y fuente
+└── data/                   NPCs, diálogos, misiones, armas, enemigos y simulacro
+public/assets/              tiles, personajes, enemigos, edificios, props, UI y fuente
 tools/generate_assets.py    generador de pixel art (Pillow)
-tests/                      pruebas node:test (lógica, mapa, assets)
-docs/                       contratos, reporte de assets y QA
+tools/qa-final.mjs          QA E2E de la demo (misión, simulacro, móvil)
+tools/qa-combat.mjs         QA E2E del Slice A (combate, misión criminal, KO)
+tests/                      pruebas node:test (lógica, mapa, assets, combate, IA)
+docs/                       contratos, documento maestro, auditoría, reporte de assets y QA
 ```
 
-El estado de misión es puro y testeable. `MissionSystem` no depende de Phaser. Los
-diálogos se resuelven con `getDialogue(npcId, ctx)` y devuelven la acción de misión
-correspondiente; `GameScene` aplica el cambio y guarda.
+La lógica de juego pesada es pura y testeable, sin Phaser: `MissionSystem` (registro de
+misiones), `CombatSystem` (vida, cargador, cadencia, recarga) y `EnemyAI` (máquina de
+estados de los matones). `SaveSystem` guarda el esquema v2 y migra partidas v1. Los
+diálogos se resuelven con `getDialogue(npcId, ctx)` y devuelven la acción de misión;
+`GameScene` aplica el cambio, actualiza el HUD y guarda.
 
 ## Rendimiento
 
-- Phaser 3.90 + Vite 7; bundle de producción ≈ 1.30 MB (≈ 360 KB gzip).
-- Assets de juego: **42.5 KB** de 63 PNG.
-- Un solo tilemap para el suelo; ~17 edificios, 147 props y 8 NPCs.
-- Sin partículas ni efectos costosos; simulacro con `camera.shake` moderado.
+- Phaser 3.90 + Vite 7; bundle de producción ≈ 1.33 MB (≈ 370 KB gzip).
+- Assets de juego: **44.9 KB** de 65 PNG.
+- Un solo tilemap para el suelo; ~17 edificios, 147 props, 8 NPCs y 4 matones.
+- Efectos de combate con texturas generadas en memoria y tweens cortos; sin partículas.
+- QA automatizado en Edge headless con GPU: **51–59 FPS a 1280 × 720** y **50–57 FPS a
+  844 × 390** con combate activo (ver `docs/QA_REPORT.md`). Falta validar en un teléfono
+  físico de gama baja.
 - Prueba automatizada en Edge headless con GPU: **50–57 FPS a 844 × 390** en el mapa
   completo (ver `docs/QA_REPORT.md`). Falta validar en un teléfono físico de gama baja.
 
@@ -172,9 +212,11 @@ Repositorio de código: **https://github.com/bampasspty/pty-time** (rama `main`)
 
 ## Limitaciones conocidas
 
-- Una sola zona jugable (San Miguelito). No hay modo historia ni multijugador.
+- Una sola zona jugable (San Miguelito). El Slice B (infección y zombis) aún no está.
+- La IA de los matones no evalúa línea de visión (la física evita atravesar muros).
 - Sin música ni efectos de sonido en esta entrega.
 - El arte es programático y minimalista, no una reproducción real de calles.
 - El simulacro es una simulación educativa, no una alerta ni un sistema de emergencia.
 - Falta probar en hardware físico de gama baja; el objetivo es que funcione en móviles
   modernos con WebGL.
+- La URL pública sigue en v0.1.0 hasta desplegar esta versión.

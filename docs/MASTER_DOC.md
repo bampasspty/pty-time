@@ -6,7 +6,7 @@
 |---|---|
 | Versión | 1.2 (nueva dirección creativa aprobada) |
 | Fecha de consolidación | 2026-11-07 |
-| Estado | Dirección aprobada · implementación pendiente (Fase 1 en curso) |
+| Estado | Dirección aprobada · Fase 1 completada · Slice A implementado en v0.2.0 |
 | Proyecto | Videojuego independiente · SAVAGE GAMES |
 | Plataforma | Web, con adaptación móvil |
 | Motor | Phaser 3 + Vite (proyecto existente: `pty-time`) |

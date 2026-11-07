@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { BUILDINGS, PROPS, PLAYER_VARIANTS, NPC_IDS } from '../src/world/defs.js';
+import { ENEMIES } from '../src/data/enemies.js';
 
 const ROOT = path.resolve('public/assets');
 
@@ -37,6 +38,14 @@ test('hojas de personajes 48x96 y retratos 32x32', () => {
   for (const p of ['portrait-player-m', 'portrait-player-f']) {
     const size = pngSize(`ui/portraits/${p}.png`);
     assert.deepEqual([size.width, size.height], [32, 32], p);
+  }
+});
+
+test('hojas de enemigos 48x96 con el sprite declarado en data/enemies.js', () => {
+  for (const [id, def] of Object.entries(ENEMIES)) {
+    assert.equal(def.sprite, `enemy-${id}`);
+    const size = pngSize(`characters/enemy-${id}.png`);
+    assert.deepEqual([size.width, size.height], [48, 96], id);
   }
 });
 

@@ -38,6 +38,10 @@ export const SAN_MIGUELITO = {
   items: [
     { id: 'chancla', kind: 'chancla', x: 900, y: 470 },
   ],
+  enemies: [
+    // id = tipo de enemigo de src/data/enemies.js (maton, maton-duro)
+    { id: 'maton', x: 128, y: 492, facing: 'down' },
+  ],
   zones: [
     { id: 'cancha', name: 'Cancha de San Isidro', type: 'open', x: 720, y: 100, w: 240, h: 180 },
   ],
@@ -84,6 +88,10 @@ export const SAN_MIGUELITO = {
 7. **Spawn**: en una acera o patio, sin colisión cercana, cerca del centro-sur del mapa.
 8. **Bordes**: el mapa debe sentirse cerrado; usa árboles, verjas y edificios en los
    bordes. El sistema agrega colisión en el límite del mundo.
+9. **Enemigos**: `enemies` es opcional. Cada spawn usa un `id` válido de
+   `src/data/enemies.js` y una posición transitable. Para la misión de limpieza debe
+   haber al menos 3 matones en la misma zona (`plaza` de Los Andes en el mapa actual).
+   Evita colocarlos junto a NPCs importantes para no interrumpir los diálogos.
 
 ## Validación
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SAN_MIGUELITO as map } from '../src/world/sanMiguelito.js';
 import { BUILDINGS, PROPS, NPC_IDS, TILE_SIZE, ZONE_TYPES, TILE_INDEX } from '../src/world/defs.js';
+import { ENEMIES } from '../src/data/enemies.js';
 import { cameraZoom, clamp } from '../src/config.js';
 
 test('mapa con dimensiones y esquema válidos', () => {
@@ -33,6 +34,16 @@ test('ground rects dentro del mapa', () => {
   for (const r of map.ground.rects) {
     assert.ok(TILE_INDEX[r.tile] !== undefined, r.tile);
     assert.ok(r.tx >= 0 && r.ty >= 0 && r.tx + r.tw <= map.width && r.ty + r.th <= map.height, JSON.stringify(r));
+  }
+});
+
+test('los matones del Slice A usan tipos definidos y quedan dentro del mapa', () => {
+  assert.ok(Array.isArray(map.enemies), 'el mapa declara enemigos');
+  assert.ok(map.enemies.length >= 3, 'al menos 3 matones para la misión de limpieza');
+  for (const spawn of map.enemies) {
+    assert.ok(ENEMIES[spawn.id], `tipo de enemigo desconocido: ${spawn.id}`);
+    assert.ok(spawn.x > 0 && spawn.x < map.width * TILE_SIZE, JSON.stringify(spawn));
+    assert.ok(spawn.y > 0 && spawn.y < map.height * TILE_SIZE, JSON.stringify(spawn));
   }
 });
 
