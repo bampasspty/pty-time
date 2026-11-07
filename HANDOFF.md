@@ -1,8 +1,9 @@
 # HANDOFF · PTY Time
 
-**Última actualización:** 2026-11-06 (sesión de construcción de la demo v0.1.0)
-**Estado:** Entrega A jugable y verificada localmente. **No publicada todavía** (faltan
-credenciales de Vercel/GitHub en este entorno).
+**Última actualización:** 2026-11-06 (demo v0.1.0 publicada)
+**Estado:** Entrega A jugable y **publicada en Vercel**:
+**https://pty-time.vercel.app** (proyecto `gestion14/pty-time`).
+GitHub remoto todavía no configurado.
 
 ## Lo que ya está funcionando
 
@@ -19,7 +20,8 @@ credenciales de Vercel/GitHub en este entorno).
 - 63 PNG de pixel art generados por código (42.5 KB) + contact sheet + generador.
 - Pruebas: **24/24** unitarias/assets y **20/20** comprobaciones E2E (ver
   `docs/QA_REPORT.md`).
-- Build de producción y `vercel.json` listos.
+- Build de producción verificado y desplegado; URL pública con HTTP 200, 0 errores,
+  0 respuestas 404 y 58 FPS en Edge.
 
 ## Cómo retomar
 
@@ -43,23 +45,25 @@ node tools/qa-final.mjs
 
 ## Pendiente / siguiente tarea concreta
 
-1. **Publicar en Vercel**: falta token/cuenta. Con credenciales:
-   ```bash
-   pnpm dlx vercel login
-   pnpm dlx vercel --prod
-   ```
-   `vercel.json` ya define framework Vite, `pnpm build`, salida `dist` y cache de assets.
-2. **Subir a GitHub**: no hay `gh` ni credenciales en el entorno. Crear repo, `git remote add origin ...`
-   y `git push -u origin main`.
-3. **Probar en teléfono físico de gama baja** (el QA fue Edge headless con GPU).
-4. Opcional para la Entrega B: audio ligero, segundo sector de San Miguelito, más misiones,
-   modo historia, eventos y multijugador (evaluar).
+1. **Subir a GitHub**: no hay `gh` ni credenciales en el entorno. Crear repo,
+   `git remote add origin ...` y `git push -u origin main`.
+2. **Probar en teléfono físico de gama baja** (el QA fue Edge headless con GPU).
+3. Opcional para la Entrega B: audio ligero, segundo sector de San Miguelito, más
+   misiones, modo historia, eventos y multijugador (evaluar).
+4. Para re-desplegar: `pnpm deploy:vercel` (CLI de Vercel ya instalado como devDependency).
+
+## Publicación actual
+
+- Producción: **https://pty-time.vercel.app**
+- Deployment directo:
+  `https://pty-time-835uk9jio-gestion14.vercel.app`
+- Proyecto: `gestion14/pty-time` · framework Vite · build `pnpm build` · salida `dist`.
 
 ## Bloqueos actuales
 
-- Sin credenciales de Vercel: no se puede generar el enlace público desde este entorno.
 - Sin credenciales de GitHub: el repositorio no se puede publicar remotamente.
 - No se probó en hardware físico; la meta de rendimiento está medida en emulación con GPU.
+- Vercel pertenece a la cuenta que ya estaba autenticada en el CLI (`gestion14`).
 
 ## Archivos clave
 

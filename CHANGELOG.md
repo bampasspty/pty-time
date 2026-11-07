@@ -36,7 +36,12 @@ Primera entrega jugable (Entrega A · PTY Time Playable) de la demo de San Migue
 - Interacción por teclado migrada a evento keydown para no perder pulsaciones rápidas.
 - Joystick visible en dispositivos táctiles y modales que bloquean HUD/controles.
 
+### Desplegado
+
+- Publicado en Vercel: **https://pty-time.vercel.app** (proyecto `gestion14/pty-time`).
+- Verificado desde la URL pública: HTTP 200, 0 errores, 0 respuestas 404 y 58 FPS.
+
 ### Notas
 
 - Sin audio, sin modo historia y sin multijugador en esta entrega.
-- Publicación en Vercel pendiente de credenciales (config lista).
+- Falta validar en un teléfono físico de gama baja.

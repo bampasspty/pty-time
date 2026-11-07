@@ -15,6 +15,13 @@ teléfono.
 ![Simulacro de terremoto](docs/screenshots/drill.png)
 ![Vista móvil](docs/screenshots/mobile.png)
 
+## Demo publicada
+
+**https://pty-time.vercel.app**
+
+Desplegada en Vercel (proyecto `pty-time`). Verificada desde la URL pública:
+HTTP 200, 0 errores, 0 assets faltantes y 58 FPS en Edge con GPU.
+
 ## Estado
 
 Demo jugable completa (Entrega A). Incluye:
@@ -123,16 +130,18 @@ correspondiente; `GameScene` aplica el cambio y guarda.
 
 ## Publicación en Vercel
 
-`vercel.json` ya está preparado (Vite, `pnpm build`, salida `dist/`, cache de assets).
-Con una cuenta de Vercel:
+La demo está publicada en **https://pty-time.vercel.app**.
+
+`vercel.json` define Vite, `pnpm build`, salida `dist/` y cache de assets. Para volver a
+desplegar desde este repo (requiere estar autenticado con una cuenta de Vercel):
 
 ```bash
-pnpm dlx vercel login
-pnpm dlx vercel --prod
+pnpm deploy:vercel
+# equivalente: pnpm exec vercel deploy --prod --yes --project pty-time
 ```
 
-El proyecto no tiene credenciales de Vercel ni GitHub en el entorno de desarrollo, por
-lo que la publicación quedó pendiente (ver `HANDOFF.md`).
+El proyecto quedó vinculado a la cuenta `gestion14`. Para publicar desde otra cuenta,
+hay que crear un proyecto nuevo con `vercel login` y `vercel deploy --prod`.
 
 ## Assets y licencias
 

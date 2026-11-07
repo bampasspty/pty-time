@@ -77,12 +77,15 @@ Notas:
   74 texturas en título y 88 en juego, 8 NPCs, 149 colliders, 49 FPS a 1280×720.
 - El build se sirve desde `dist/` con rutas absolutas de assets (`/assets/...`), listo
   para raíz de dominio en Vercel.
+- **Despliegue público:** https://pty-time.vercel.app (proyecto `gestion14/pty-time`).
+  Verificado desde la URL pública: HTTP 200, 0 errores de consola, 0 respuestas 404,
+  58 FPS a 1280×720.
 
 ## 5. Criterios del MVP (documento maestro)
 
 | Criterio | Resultado |
 |---|---|
-| El juego abre desde enlace web | Local sí (`localhost:5173`); Vercel pendiente por credenciales |
+| El juego abre desde enlace web | Sí: https://pty-time.vercel.app |
 | Se puede jugar desde teléfono | Verificado en emulación táctil; joystick y botones funcionan |
 | Personaje se mueve correctamente | Sí (teclado y joystick) |
 | Colisiones funcionales | Sí; verificado contra un edificio (se detiene en el borde) |
@@ -92,7 +95,7 @@ Notas:
 | Coherencia visual | Colección generada con paleta, outlines y perspectiva comunes |
 | Sin errores críticos | 0 errores en la sesión E2E final |
 | Rendimiento aceptable | 50–57 FPS en Edge con GPU; físico pendiente |
-| Demo publicada en Vercel | **Pendiente** (sin token/cuenta en el entorno) |
+| Demo publicada en Vercel | **Sí:** https://pty-time.vercel.app |
 
 ## 6. Capturas
 
@@ -105,7 +108,7 @@ Generadas en `qa/` (ignorado por git):
 
 ## 7. Bloqueos / riesgos
 
-- Publicación Vercel/GitHub: sin credenciales en el entorno.
+- GitHub remoto: sin credenciales en el entorno. Vercel ya está publicado.
 - Hardware físico de gama baja no probado.
 - Sin audio en esta entrega.
 - El simulacro no debe presentarse como alerta real: el disclaimer está en intro,
