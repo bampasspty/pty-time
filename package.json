@@ -7,7 +7,7 @@
   "engines": {
     "node": ">=20.19.0"
   },
-  "description": "PTY Time - videojuego panameño de exploración en pixel art",
+  "description": "PTY Time - videojuego panameño de accion y supervivencia zombi en pixel art",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",

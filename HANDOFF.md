@@ -1,9 +1,24 @@
 # HANDOFF · PTY Time
 
-**Última actualización:** 2026-11-06 (demo v0.1.0 publicada y subida a GitHub)
+**Última actualización:** 2026-11-07 (dirección v1.2 consolidada; demo v0.1.0 sigue publicada)
 **Estado:** Entrega A jugable y **publicada**:
 - Vercel: **https://pty-time.vercel.app** (proyecto `gestion14/pty-time`)
 - GitHub: **https://github.com/bampasspty/pty-time** (rama `main`)
+
+## Dirección vigente: v1.2 (acción y supervivencia zombi)
+
+PTY TIME deja de ser una aventura relajante de exploración y pasa a ser una **aventura
+narrativa de supervivencia** con Calito como antihéroe fijo y un apocalipsis zombi. La
+base v0.1.0 se conserva como cimiento técnico (mapa, NPC, diálogos, misión, guardado,
+UI táctil).
+
+- Documento de referencia: `docs/MASTER_DOC.md` (Documento Maestro v1.2).
+- Auditoría de adaptación, brechas y plan por slices: `docs/V1.2_AUDIT.md`.
+- Estado real: **la dirección v1.2 aún no está implementada**. No hay combate, enemigos,
+  zombis, inventario, supervivencia, reputación ni vehículos.
+- Plan acordado: **Slice A** (Calito, 8 direcciones, combate, enemigos humanos, una
+  misión criminal, guardado v2) y después **Slice B** (infección, un zombi, inventario,
+  transición narrativa y arranque de supervivencia).
 
 ## Lo que ya está funcionando
 
@@ -45,11 +60,15 @@ node tools/qa-final.mjs
 
 ## Pendiente / siguiente tarea concreta
 
-1. **Probar en teléfono físico de gama baja** (el QA fue Edge headless con GPU).
-2. Opcional para la Entrega B: audio ligero, segundo sector de San Miguelito, más
-   misiones, modo historia, eventos y multijugador (evaluar).
-3. Para re-desplegar: `pnpm deploy:vercel` (CLI de Vercel ya instalado como devDependency).
-4. Para publicar cambios: `git push origin main`.
+1. **Confirmar 4 decisiones de diseño** antes de tocar código (ver §6 de
+   `docs/V1.2_AUDIT.md`): Calito fijo vs. creador de personaje, 8 direcciones visuales,
+   conservar el simulacro y enemigos humanos en el Slice A.
+2. **Slice A, tarea 1:** generalizar `MissionSystem` y migrar `SaveSystem` a v2 con
+   pruebas, sin cambiar nada visible del juego.
+3. Después: movimiento/apuntado, combate con proyectiles, enemigos con IA de estados,
+   misión criminal nueva, HUD de salud/munición y guardado v2.
+4. **Probar en teléfono físico de gama baja** (el QA fue Edge headless con GPU).
+5. Para re-desplegar: `pnpm deploy:vercel`; para publicar cambios: `git push origin main`.
 
 ## Publicación actual
 

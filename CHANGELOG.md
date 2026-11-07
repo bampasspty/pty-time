@@ -1,5 +1,26 @@
 # CHANGELOG · PTY Time
 
+## [Unreleased] — dirección v1.2
+
+### Documentación
+
+- Consolidado el **Documento Maestro v1.2** en `docs/MASTER_DOC.md`: nueva dirección de
+  acción y supervivencia zombi, Calito como antihéroe, historia en cinco capítulos y
+  sistemas objetivo (combate, inventario, fabricación, reputación, supervivencia,
+  refugios, vehículos y mapa de Panamá).
+- Añadida la **auditoría Fase 1** en `docs/V1.2_AUDIT.md`: inventario de lo reutilizable,
+  brechas frente al documento, deuda técnica y plan por slices (Slice A: mecánica
+  principal; Slice B: el colapso).
+- Actualizados `README.md`, `HANDOFF.md` y la descripción de `package.json` a la nueva
+  dirección.
+
+### Notas
+
+- **Sin cambios de código de juego ni de la demo publicada.** La demo v0.1.0 sigue
+  siendo la base técnica y la única build desplegada.
+- Pendiente confirmar 4 decisiones de diseño antes de iniciar el Slice A (ver
+  `docs/V1.2_AUDIT.md` §6).
+
 ## [0.1.0] — 2026-11-06
 
 Primera entrega jugable (Entrega A · PTY Time Playable) de la demo de San Miguelito.

@@ -1,9 +1,21 @@
-# PTY TIME · Demo v0.1.0
+# PTY TIME
 
-Videojuego panameño de exploración, aventura y cultura en pixel art 2D con cámara
-cenital. Esta primera entrega es **San Miguelito** (inspirado en San Isidro, Los Andes y
-sus alrededores) y está pensada para correr en navegador, tanto en computadora como en
+Videojuego panameño de **acción y supervivencia zombi** en pixel art 2D con cámara
+cenital. Acompaña a **Calito**, un antihéroe de San Miguelito, desde la vida de barrio
+hasta el apocalipsis. Pensado para correr en navegador, tanto en computadora como en
 teléfono.
+
+> **Nueva dirección creativa (v1.2):** PTY TIME pasa de aventura relajante de exploración
+> a **aventura narrativa de supervivencia**, conservando Panamá, sus personajes y su
+> identidad cultural. El documento de referencia es
+> [`docs/MASTER_DOC.md`](docs/MASTER_DOC.md) y la auditoría de adaptación, con lo que ya
+> existe y lo que falta, está en [`docs/V1.2_AUDIT.md`](docs/V1.2_AUDIT.md).
+
+## Estado de la demo actual (v0.1.0)
+
+La demo publicada sigue siendo **San Miguelito explorable** (inspirado en San Isidro, Los
+Andes y sus alrededores). Es la base técnica sobre la que se construye la nueva
+dirección: mapa, NPC, diálogos, misión, guardado y controles táctiles ya funcionan.
 
 > **Evento sísmico:** el simulacro de terremoto es ficción dentro del videojuego. No es
 > una alerta real, no se conecta a sistemas de monitoreo y no sustituye información
