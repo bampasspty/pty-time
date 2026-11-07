@@ -54,9 +54,11 @@ node tools/qa-final.mjs
 ## Publicación actual
 
 - Producción: **https://pty-time.vercel.app**
-- Deployment directo:
-  `https://pty-time-835uk9jio-gestion14.vercel.app`
 - Proyecto: `gestion14/pty-time` · framework Vite · build `pnpm build` · salida `dist`.
+- **GitHub conectado a Vercel**: cada push a `main` despliega automáticamente.
+  Verificado con el commit `406197d` → deployment `pty-time-m0jxd769w-gestion14.vercel.app`
+  en estado READY, target production.
+- Para re-desplegar manualmente: `pnpm deploy:vercel`.
 
 ## Bloqueos actuales
 

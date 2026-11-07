@@ -80,6 +80,8 @@ Notas:
 - **Despliegue público:** https://pty-time.vercel.app (proyecto `gestion14/pty-time`).
   Verificado desde la URL pública: HTTP 200, 0 errores de consola, 0 respuestas 404,
   58 FPS a 1280×720.
+- **Auto-deploy GitHub → Vercel:** verificado con el push del commit `406197d`; Vercel
+  creó el deployment de producción `pty-time-m0jxd769w-gestion14.vercel.app` (READY).
 
 ## 5. Criterios del MVP (documento maestro)
 

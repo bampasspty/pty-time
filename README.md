@@ -131,7 +131,9 @@ correspondiente; `GameScene` aplica el cambio y guarda.
 
 ## Publicación en Vercel
 
-La demo está publicada en **https://pty-time.vercel.app**.
+La demo está publicada en **https://pty-time.vercel.app** y el proyecto Vercel está
+**conectado a GitHub**: cada push a `main` en
+https://github.com/bampasspty/pty-time genera un deployment de producción automático.
 
 `vercel.json` define Vite, `pnpm build`, salida `dist/` y cache de assets. Para volver a
 desplegar desde este repo (requiere estar autenticado con una cuenta de Vercel):
