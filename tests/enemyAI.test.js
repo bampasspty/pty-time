@@ -85,6 +85,41 @@ test('un enemigo muerto no hace nada', () => {
   assert.equal(result.attack, false);
 });
 
+test('no detecta al jugador si no tiene línea de visión', () => {
+  const ai = createAI({ homeX: 100, homeY: 100 });
+  const near = { x: 100 + DEF.detectRange - 10, y: 100 };
+  const result = stepAI(ai, ctx({ player: near, hasLineOfSight: false }));
+  assert.equal(result.state, 'idle');
+});
+
+test('si pierde de vista persigue la última posición conocida y luego se rinde', () => {
+  const ai = createAI({ homeX: 100, homeY: 100 });
+  const seen = { x: 160, y: 100 };
+  const first = stepAI(ai, ctx({ player: seen, now: 1000 }));
+  assert.equal(first.state, 'chase');
+  assert.equal(ai.lastSeenX, 160);
+
+  const lost = stepAI(ai, ctx({ player: { x: 900, y: 100 }, now: 1200, hasLineOfSight: false }));
+  assert.equal(lost.state, 'chase');
+  assert.ok(lost.vx > 0, 'va hacia la última posición conocida');
+
+  const arrived = stepAI(ai, {
+    ...ctx({ player: { x: 900, y: 100 }, now: 1300, hasLineOfSight: false }),
+    x: 160,
+    y: 100,
+  });
+  assert.equal(arrived.state, 'idle');
+});
+
+test('sin línea de visión no ataca aunque esté cerca', () => {
+  const ai = createAI({ homeX: 100, homeY: 100 });
+  alertAI(ai, 1000, 4000);
+  const close = { x: 100 + DEF.attackRange - 4, y: 100 };
+  const result = stepAI(ai, ctx({ player: close, now: 1200, hasLineOfSight: false }));
+  assert.equal(result.attack, false);
+  assert.notEqual(result.state, 'attack');
+});
+
 test('los dos tipos de matón tienen datos completos', () => {
   for (const [id, def] of Object.entries(ENEMIES)) {
     assert.equal(def.id, id);

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { ensureTitleBackdrop } from '../ui/Backdrop.js';
 import { PixelButton } from '../ui/PixelButton.js';
-import { PLAYER_VARIANTS } from '../world/defs.js';
+import { CALITO } from '../data/calito.js';
 import { CSS, clamp, textStyle } from '../config.js';
 
 const SHIRTS = [
@@ -17,8 +17,9 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   init(data) {
-    const initial = data?.variant ?? 'm-blue';
-    this.bodyType = initial.startsWith('f') ? 'f' : 'm';
+    const initial = data?.variant ?? CALITO.defaultVariant;
+    // Calito es el protagonista: el cuerpo queda fijo y la camisa es cosmética.
+    this.bodyType = 'm';
     this.shirt = initial.split('-')[1] ?? 'blue';
     if (!SHIRTS.some((s) => s.id === this.shirt)) this.shirt = 'blue';
     this.variant = `${this.bodyType}-${this.shirt}`;
@@ -30,23 +31,17 @@ export class CharacterScene extends Phaser.Scene {
     this.overlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x0b1020, 0.58).setOrigin(0, 0);
 
     this.title = this.add
-      .text(0, 0, 'CREA TU PERSONAJE', textStyle(18, CSS.yellow, { stroke: '#0b1020', strokeThickness: 4 }))
+      .text(0, 0, CALITO.name.toUpperCase(), textStyle(20, CSS.yellow, { stroke: '#0b1020', strokeThickness: 4 }))
       .setOrigin(0.5);
     this.subtitle = this.add
-      .text(0, 0, 'Así te verán en San Miguelito', textStyle(8, CSS.soft))
+      .text(0, 0, 'Muchacho de San Miguelito · elige la camisa', textStyle(8, CSS.soft))
       .setOrigin(0.5);
 
     this.shadow = this.add.ellipse(0, 0, 110, 26, 0x1b1b2b, 0.4);
     this.preview = this.add.sprite(0, 0, `player-${this.variant}`, 0).setOrigin(0.5, 1);
     this.preview.play(`player-${this.variant}-walk-down`);
 
-    this.bodyLabel = this.add.text(0, 0, 'CUERPO', textStyle(8, CSS.yellow)).setOrigin(0.5);
     this.shirtLabel = this.add.text(0, 0, 'CAMISA', textStyle(8, CSS.yellow)).setOrigin(0.5);
-
-    this.bodyButtons = [
-      new PixelButton(this, { label: 'MASCULINO', onClick: () => this.setBody('m') }),
-      new PixelButton(this, { label: 'FEMENINO', onClick: () => this.setBody('f') }),
-    ];
 
     this.shirtButtons = SHIRTS.map((shirt) => {
       const container = this.add.container(0, 0);
@@ -77,12 +72,6 @@ export class CharacterScene extends Phaser.Scene {
     });
   }
 
-  setBody(body) {
-    if (body === this.bodyType) return;
-    this.bodyType = body;
-    this.refreshPreview();
-  }
-
   setShirt(shirt) {
     if (shirt === this.shirt) return;
     this.shirt = shirt;
@@ -97,12 +86,6 @@ export class CharacterScene extends Phaser.Scene {
   }
 
   updateSelectionUI() {
-    this.bodyButtons.forEach((btn, i) => {
-      const active = (i === 0 ? 'm' : 'f') === this.bodyType;
-      btn.primary = active;
-      btn.applyBaseStyle();
-      btn.bg.setStrokeStyle(3, active ? 0xffffff : 0x46557a, 1);
-    });
     for (const sw of this.shirtButtons) {
       const active = sw.id === this.shirt;
       sw.glow.setVisible(active);
@@ -119,16 +102,12 @@ export class CharacterScene extends Phaser.Scene {
       this.enterGame();
     } else if (event.code === 'Escape') {
       this.scene.start('Title');
-    } else if (event.code === 'KeyA' || event.code === 'ArrowLeft') {
+    } else if (event.code === 'KeyA' || event.code === 'ArrowLeft' || event.code === 'KeyW') {
       const i = SHIRTS.findIndex((s) => s.id === this.shirt);
       this.setShirt(SHIRTS[(i + SHIRTS.length - 1) % SHIRTS.length].id);
-    } else if (event.code === 'KeyD' || event.code === 'ArrowRight') {
+    } else if (event.code === 'KeyD' || event.code === 'ArrowRight' || event.code === 'KeyS') {
       const i = SHIRTS.findIndex((s) => s.id === this.shirt);
       this.setShirt(SHIRTS[(i + 1) % SHIRTS.length].id);
-    } else if (event.code === 'KeyW' || event.code === 'ArrowUp') {
-      this.setBody('m');
-    } else if (event.code === 'KeyS' || event.code === 'ArrowDown') {
-      this.setBody('f');
     }
   }
 
@@ -177,17 +156,7 @@ export class CharacterScene extends Phaser.Scene {
 
   positionControls(centerX, topY, contentW) {
     const btnH = clamp(Math.round(this.height * 0.05), 30, 40);
-    const gap = 10;
     let y = topY;
-    this.bodyLabel.setPosition(centerX, y);
-    y += 16;
-    const bodyW = Math.min(contentW, 300);
-    this.bodyButtons[0].setSize(bodyW / 2 - 5, btnH).setPosition(centerX - bodyW / 4, y + btnH / 2);
-    this.bodyButtons[1].setSize(bodyW / 2 - 5, btnH).setPosition(centerX + bodyW / 4, y + btnH / 2);
-    const bodyFont = clamp(Math.round(this.height / 52), 7, 10);
-    this.bodyButtons[0].text.setFontSize(bodyFont);
-    this.bodyButtons[1].text.setFontSize(bodyFont);
-    y += btnH + 18;
 
     this.shirtLabel.setPosition(centerX, y);
     y += 18;
@@ -201,7 +170,7 @@ export class CharacterScene extends Phaser.Scene {
       sw.glow.setSize(swW + 8, 38);
       sx += swW + swGap;
     }
-    y += 44;
+    y += 52;
 
     const actionW = Math.min(contentW, 320);
     this.backButton.setSize(actionW * 0.4, btnH).setPosition(centerX - actionW * 0.3, y + btnH / 2);

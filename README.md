@@ -11,23 +11,32 @@ teléfono.
 > [`docs/MASTER_DOC.md`](docs/MASTER_DOC.md) y la auditoría de adaptación, con lo que ya
 > existe y lo que falta, está en [`docs/V1.2_AUDIT.md`](docs/V1.2_AUDIT.md).
 
-## Estado de la demo actual (v0.2.0 · Slice A)
+## Estado de la demo actual (v0.3.0 · Slice A cerrado)
 
-La versión jugable ya incluye el **núcleo de acción del Slice A**:
+La versión jugable ya incluye el **Slice A completo**:
 
+- **Calito como protagonista**: identidad fija (muchacho de San Miguelito); la pantalla
+  de personaje ahora solo permite elegir la camisa, que es cosmética.
 - **Combate**: pistola «LA 9» con cargador, reserva, recarga y cadencia; puño como arma
-  cuerpo a cuerpo; balas, fogonazos, impactos y sacudida de cámara moderada.
+  cuerpo a cuerpo; cambio de arma con `Q` o botón ARMA; balas, fogonazos, impactos y
+  sacudida de cámara moderada.
 - **Matones con IA**: 4 enemigos (matón y matón jefe) con estados idle → persecución →
-  ataque, reacción a los disparos y vida propia.
+  ataque, **línea de visión** (no ven a través de edificios), investigación de la última
+  posición conocida y reacción a los disparos.
 - **Vida y munición**: barra de vida, daño, modal de KO y reaparición; HUD integrado.
 - **Misión criminal**: *Los matones de la plaza* (se abre al terminar el mandado):
   derriba a 3 matones y vuelve con Pipe para cobrar 60 de yapa y reputación.
 - **Guardado v2** con vida, munición, yapa, reputación y estado de todas las misiones.
   Los guardados de la v0.1.0 se migran solos.
-- **Controles táctiles** de combate: FUEGO (apunta al matón más cercano) y R.
+- **Controles táctiles** de combate: FUEGO (apunta al matón más cercano), R y ARMA.
 
 Sigue la base anterior: mapa de San Miguelito, 8 NPCs con diálogos, mandado de Doña Nena,
 simulacro de terremoto con PTY Alerta y guardado local.
+
+> **Dirección visual:** el personaje se mueve en diagonal y apunta libre, pero las hojas
+> de animación mantienen **4 filas visuales** (arriba/abajo/izquierda/derecha) con la
+> dirección dominante. Es una decisión de producto tomada en la auditoría para no
+> redibujar todo el arte; las diagonales quedan como mejora opcional futura.
 
 > **Estado de publicación:** https://pty-time.vercel.app sirve todavía la **v0.1.0**.
 > Esta v0.2.0 está verificada en local (52/52 pruebas, QA E2E) y lista para desplegar.
@@ -52,22 +61,22 @@ HTTP 200, 0 errores, 0 assets faltantes y 58 FPS en Edge con GPU.
 
 ## Estado
 
-Demo jugable (Entrega A + núcleo del Slice A). Incluye:
+Demo jugable (Slice A cerrado). Incluye:
 
-- Pantalla de inicio, ayuda y creación de personaje (2 cuerpos × 4 colores de camisa).
-- Personaje controlable, con animación de caminar y profundidad.
+- Pantalla de inicio, ayuda y apariencia de Calito (camisa cosmética).
+- **Calito** controlable, con animación de caminar y profundidad; movimiento diagonal.
 - Mapa de San Miguelito de 64 × 44 tiles: avenida, calle Los Andes, aceras, escaleras,
   cancha, fonda, minisúper, metro, parada, escuela, casas y apartamentos.
 - Colisiones con edificios, mobiliario y límites del mundo; cámara que sigue al jugador.
 - 8 NPCs con diálogos propios y paseo ligero.
 - Misión **El mandado de Doña Nena** con 5 pasos y recompensa.
 - Misión criminal **Los matones de la plaza** con combatientes y recompensa.
-- Combate cenital con pistola, puño, munición, recarga y enemigos con IA.
+- Combate cenital con pistola, puño, munición, recarga y enemigos con IA y línea de visión.
 - Vida, daño, KO y reaparición; barra de vida y munición en el HUD.
 - Guardado automático v2 en `localStorage` (migra partidas v1) y opción CONTINUAR.
 - Simulacro de terremoto desbloqueable: cubrirse, sujetarse y evacuar a zona abierta,
   con advertencia visible y recomendaciones educativas.
-- HUD de misión, yapa y combate; ayuda, controles táctiles (joystick + botones) y toasts.
+- HUD de misión, yapa y combate; ayuda, controles táctiles y toasts.
 - Assets de pixel art generados por código (65 PNG, 44.9 KB) y fuente Press Start 2P.
 
 ## Requisitos
@@ -99,6 +108,7 @@ pnpm test       # pruebas unitarias y de assets (node:test)
 | Apuntar | Ratón | Automático al matón más cercano |
 | Disparar | Clic izquierdo o J | Botón FUEGO |
 | Recargar | R | Botón R |
+| Cambiar arma | Q | Botón ARMA |
 | Hablar / recoger | E, ESPACIO, ENTER o botón HABLAR | Botón HABLAR |
 | Agacharse / cubrirse | C o botón CUBRIRSE durante el simulacro | Botón CUBRIRSE |
 | Ayuda | ? o ESC | Botón ? |
@@ -213,10 +223,10 @@ Repositorio de código: **https://github.com/bampasspty/pty-time** (rama `main`)
 ## Limitaciones conocidas
 
 - Una sola zona jugable (San Miguelito). El Slice B (infección y zombis) aún no está.
-- La IA de los matones no evalúa línea de visión (la física evita atravesar muros).
+- Las animaciones mantienen 4 filas visuales; el movimiento diagonal usa la dirección
+  dominante (decisión de producto, ver `docs/V1.2_AUDIT.md` §6).
 - Sin música ni efectos de sonido en esta entrega.
 - El arte es programático y minimalista, no una reproducción real de calles.
 - El simulacro es una simulación educativa, no una alerta ni un sistema de emergencia.
 - Falta probar en hardware físico de gama baja; el objetivo es que funcione en móviles
   modernos con WebGL.
-- La URL pública sigue en v0.1.0 hasta desplegar esta versión.

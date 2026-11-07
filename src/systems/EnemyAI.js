@@ -25,6 +25,9 @@ export function createAI({ homeX, homeY, facing = 'down', seed = 0 } = {}) {
     wanderX: Number(homeX) || 0,
     wanderY: Number(homeY) || 0,
     nextThink: 900 + seed * 137,
+    lastSeenX: Number(homeX) || 0,
+    lastSeenY: Number(homeY) || 0,
+    lostSightAt: 0,
     lineOfSight: true,
   };
 }
@@ -50,7 +53,7 @@ function faceTo(ai, dx, dy) {
 }
 
 export function stepAI(ai, ctx) {
-  const { now, x, y, player, def, dt = 16 } = ctx;
+  const { now, x, y, player, def, dt = 16, hasLineOfSight = true } = ctx;
   const out = { state: ai.state, vx: 0, vy: 0, facing: ai.facing, attack: false };
   if (ai.state === 'dead') {
     out.state = 'dead';
@@ -62,18 +65,20 @@ export function stepAI(ai, ctx) {
   const dist = Math.hypot(px - x, py - y);
   const alerted = isAlerted(ai, now);
 
-  if (ai.state === 'idle' && (dist <= def.detectRange || alerted)) {
+  if (ai.state === 'idle' && ((dist <= def.detectRange && hasLineOfSight) || alerted)) {
     ai.state = 'chase';
   }
 
-  if ((ai.state === 'chase' || ai.state === 'attack') && dist > def.loseRange && !alerted) {
+  // Si ve al jugador y este se escapa demasiado, deja de perseguir. Si perdió
+  // la vista, sigue investigando la última posición conocida.
+  if ((ai.state === 'chase' || ai.state === 'attack') && dist > def.loseRange && !alerted && hasLineOfSight) {
     ai.state = 'idle';
     ai.wanderX = ai.homeX;
     ai.wanderY = ai.homeY;
     ai.nextThink = now + 600;
   }
 
-  if (ai.state === 'attack' && dist > def.attackRange * 1.25) {
+  if (ai.state === 'attack' && (dist > def.attackRange * 1.25 || !hasLineOfSight)) {
     ai.state = 'chase';
   }
 
@@ -99,30 +104,49 @@ export function stepAI(ai, ctx) {
     return out;
   }
 
-  // chase / attack: mirar siempre al jugador.
-  out.facing = faceTo(ai, px - x, py - y);
+  // chase / attack: si ve al jugador, guarda su posición; si no, investiga la
+  // última posición conocida y se rinde después de un rato.
+  if (hasLineOfSight) {
+    ai.lastSeenX = px;
+    ai.lastSeenY = py;
+    ai.lostSightAt = 0;
+    ai.lineOfSight = true;
+  } else {
+    ai.lineOfSight = false;
+    if (!ai.lostSightAt) ai.lostSightAt = now;
+  }
+
+  const targetX = hasLineOfSight ? px : ai.lastSeenX;
+  const targetY = hasLineOfSight ? py : ai.lastSeenY;
+  const targetDist = Math.hypot(targetX - x, targetY - y);
+  out.facing = faceTo(ai, targetX - x, targetY - y);
 
   if (ai.state === 'chase') {
-    if (dist <= def.attackRange) {
+    if (hasLineOfSight && dist <= def.attackRange) {
       ai.state = 'attack';
+    } else if (!hasLineOfSight && (targetDist <= 6 || now - ai.lostSightAt > 6000)) {
+      ai.state = 'idle';
+      ai.lostSightAt = 0;
     } else {
-      const dx = px - x;
-      const dy = py - y;
-      const d = Math.max(0.001, Math.hypot(dx, dy));
-      out.vx = (dx / d) * def.speed;
-      out.vy = (dy / d) * def.speed;
+      const d = Math.max(0.001, targetDist);
+      out.vx = ((targetX - x) / d) * def.speed;
+      out.vy = ((targetY - y) / d) * def.speed;
       out.state = 'chase';
       return out;
     }
   }
 
   if (ai.state === 'attack') {
-    if (now >= ai.cooldownUntil) {
-      ai.cooldownUntil = now + def.attackCooldownMs;
-      out.attack = true;
+    if (!hasLineOfSight) {
+      ai.state = 'chase';
+    } else {
+      if (now >= ai.cooldownUntil) {
+        ai.cooldownUntil = now + def.attackCooldownMs;
+        out.attack = true;
+      }
+      out.state = 'attack';
+      return out;
     }
-    out.state = 'attack';
-    return out;
   }
 
   // Nunca debería llegar aquí, pero deja un frame seguro.

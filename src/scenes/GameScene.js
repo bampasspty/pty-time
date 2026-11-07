@@ -40,6 +40,7 @@ export class GameScene extends Phaser.Scene {
     this.ko = false;
     this.invulnUntil = 0;
     this.reloadKeyDown = false;
+    this.weaponKeyDown = false;
     this.aimAngle = 0;
     this.aimWorld = { x: 0, y: 0 };
     this.dialogueNpc = null;
@@ -194,6 +195,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   handleFireInput(time) {
+    if (this.keys.switchWeapon.isDown && !this.weaponKeyDown) {
+      this.weaponKeyDown = true;
+      this.toggleWeapon();
+    } else if (!this.keys.switchWeapon.isDown) {
+      this.weaponKeyDown = false;
+    }
+
     if (this.keys.reload.isDown && !this.reloadKeyDown) {
       this.reloadKeyDown = true;
       this.reloadWeapon();
@@ -204,6 +212,17 @@ export class GameScene extends Phaser.Scene {
     const pointer = this.input.activePointer;
     const mouseHeld = pointer.isDown && (pointer.pointerType === 'mouse' || pointer.pointerType === undefined);
     if (this.keys.fire.isDown || mouseHeld) this.tryShoot(time);
+  }
+
+  // Q / botón ARMA: alterna entre la pistola y el puño.
+  toggleWeapon() {
+    const next = this.combat.weaponId === 'pistola' ? 'puno' : 'pistola';
+    if (!this.combat.equip(next)) return;
+    this.emitHud();
+    events.emit(
+      'hud:toast',
+      next === 'puno' ? 'Guardaste la 9. Ahora es a puño.' : 'Sacaste la 9. Cuidado cómo la usas.',
+    );
   }
 
   reloadWeapon() {
@@ -330,6 +349,35 @@ export class GameScene extends Phaser.Scene {
     this.emitHud();
   }
 
+  // Línea de visión aproximada: muestrea la recta entre dos puntos y comprueba
+  // si algún cuerpo estático (edificio, prop sólido) la corta.
+  hasLineOfSight(ax, ay, bx, by) {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 10) return true;
+    const steps = Math.max(2, Math.min(28, Math.round(dist / 12)));
+    for (let i = 1; i < steps; i++) {
+      const px = ax + (dx * i) / steps;
+      const py = ay + (dy * i) / steps;
+      const bodies = this.physics.overlapRect(px - 1, py - 1, 2, 2, false, true);
+      if (bodies && bodies.length > 0) return false;
+    }
+    return true;
+  }
+
+  enemyLineOfSight(enemy, now) {
+    if (enemy.losAt && now - enemy.losAt < 120) return enemy.los;
+    enemy.los = this.hasLineOfSight(
+      this.player.x,
+      this.player.y - AIM_HEIGHT,
+      enemy.x,
+      enemy.y - AIM_HEIGHT,
+    );
+    enemy.losAt = now;
+    return enemy.los;
+  }
+
   updateEnemies(time, delta, frozen = false) {
     if (this.ko) return;
     if (frozen) {
@@ -341,8 +389,12 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     for (const enemy of this.enemies) {
+      if (enemy.dead) continue;
+      const dist = Math.hypot(enemy.x - this.player.x, enemy.y - this.player.y);
+      const los = dist <= enemy.def.loseRange + 40 ? this.enemyLineOfSight(enemy, time) : true;
       enemy.update(time, delta, this.player, {
         onAttack: (attacker) => this.damagePlayer(attacker.def.damage),
+        hasLineOfSight: los,
       });
     }
   }
@@ -465,6 +517,7 @@ export class GameScene extends Phaser.Scene {
       fire: Keyboard.KeyCodes.J,
       fireAlt: Keyboard.KeyCodes.K,
       reload: Keyboard.KeyCodes.R,
+      switchWeapon: Keyboard.KeyCodes.Q,
     });
     this.input.keyboard.addCapture([
       Keyboard.KeyCodes.UP,
@@ -496,6 +549,7 @@ export class GameScene extends Phaser.Scene {
     this.onDrillStart = () => this.startDrill();
     this.onUiFire = () => this.fireAtNearest();
     this.onUiReload = () => this.reloadWeapon();
+    this.onUiWeapon = () => this.toggleWeapon();
     this.onPlayerRespawn = () => this.respawnPlayer();
 
     events.on('ui:interact', this.onUiInteract);
@@ -506,6 +560,7 @@ export class GameScene extends Phaser.Scene {
     events.on('ui:help', this.onUiHelp);
     events.on('ui:fire', this.onUiFire);
     events.on('ui:reload', this.onUiReload);
+    events.on('ui:weapon', this.onUiWeapon);
     events.on('player:respawn', this.onPlayerRespawn);
 
     this.onPageHide = () => this.persist();
@@ -520,6 +575,7 @@ export class GameScene extends Phaser.Scene {
       events.off('ui:help', this.onUiHelp);
       events.off('ui:fire', this.onUiFire);
       events.off('ui:reload', this.onUiReload);
+      events.off('ui:weapon', this.onUiWeapon);
       events.off('player:respawn', this.onPlayerRespawn);
       window.removeEventListener('pagehide', this.onPageHide);
       this.drill?.stop();

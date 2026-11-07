@@ -1,8 +1,8 @@
 # HANDOFF · PTY Time
 
-**Última actualización:** 2026-11-07 (v0.2.0 · Slice A jugable en local)
-**Versión del repo:** 0.2.0 (`package.json`, `src/config.js` GAME_VERSION)
-**Demo publicada:** v0.1.0 en **https://pty-time.vercel.app** (la v0.2.0 aún no se desplegó)
+**Última actualización:** 2026-11-07 (v0.3.0 · Slice A cerrado; desplegado a Vercel)
+**Versión del repo:** 0.3.0 (`package.json`, `src/config.js` GAME_VERSION)
+**Demo publicada:** **https://pty-time.vercel.app** (auto-deploy desde `main`)
 **Repositorio:** **https://github.com/bampasspty/pty-time** (rama `main`)
 
 ## Dirección vigente: v1.2 (acción y supervivencia zombi)
@@ -16,13 +16,14 @@ v0.1.0 se conserva como cimiento técnico.
 - Plan por slices: **Slice A** (combate y crimen en San Miguelito) → **Slice B**
   (infección, zombis, inventario, transición narrativa y supervivencia).
 
-## Estado: v0.2.0 · núcleo del Slice A
+## Estado: v0.3.0 · Slice A cerrado
 
 ### Ya funciona
 
 - Proyecto Phaser 3.90 + Vite 7, arquitectura modular, fuente Press Start 2P.
 - Pantalla de inicio con CONTINUAR / NUEVA PARTIDA / CÓMO JUGAR.
-- Creación de personaje (2 cuerpos × 4 camisas) y persistencia.
+- **Calito** como protagonista canónico (`src/data/calito.js`); la apariencia es solo
+  cosmética (camisa).
 - Mapa San Miguelito 64×44: avenida, calle Los Andes, cancha, plaza, 17 edificios,
   147 props, 8 NPCs, 7 zonas.
 - Movimiento diagonal con normalización, colisiones, cámara, animaciones y profundidad.
@@ -31,25 +32,24 @@ v0.1.0 se conserva como cimiento técnico.
 - Misión criminal **Los matones de la plaza**: 4 enemigos (matón y matón jefe), contador
   de bajas, +60 de yapa y +10 de reputación.
 - **Combate**: pistola «LA 9» (cargador/reserva/recarga/cadencia), puño cuerpo a cuerpo,
-  proyectiles, fogonazos, impactos, sacudida de cámara, apuntado con ratón y disparo
-  táctil (FUEGO apunta al más cercano).
+  cambio de arma con `Q`/botón ARMA, proyectiles, fogonazos, impactos y apuntado libre.
 - **Vida y daño**: barra de vida, munición en HUD, modal de KO y reaparición.
-- IA de matones por estados (idle → chase → attack → dead) con alerta por disparos.
+- **IA de matones**: estados idle → chase → attack → dead, **línea de visión** (no ven ni
+  atacan a través de edificios), investigación de la última posición conocida y alerta
+  por disparos cercanos.
 - Simulacro de terremoto desbloqueable con disclaimer y fuentes SINAPROC.
 - Guardado v2 en `localStorage` (`pty-time-save-v1`, versión 2) con **migración v1**.
-- 65 PNG de pixel art (44.9 KB) generados por código + generador determinista.
-- Pruebas: **52/52** unitarias (`pnpm test`), **20/20** E2E de regresión
-  (`tools/qa-final.mjs`) y **18/18** E2E de combate (`tools/qa-combat.mjs`).
-- Build de producción OK: 1,329.32 KB (369.58 KB gzip), 51–59 FPS en Edge headless.
+- 65 PNG de pixel art (44.9 KB) + generador determinista; texturas de combate en memoria.
+- Pruebas: **55/55** unitarias, **20/20** E2E de regresión y E2E de combate ampliado.
+- Build de producción OK; 51–59 FPS en Edge headless con 4 enemigos activos.
 
 ### Pendiente real
 
-1. **Desplegar la v0.2.0** a Vercel (o hacer push a `main`): la URL pública sigue en v0.1.0.
-2. **8 direcciones visuales**: hoy el movimiento diagonal usa 4 filas de animación.
-3. **Slice A resto**: línea de visión para la IA, más variedad de armas, inventario básico.
-4. **Slice B**: infección, un tipo de zombi, transición narrativa y arranque de
-   supervivencia (hambre/resistencia).
-5. **Probar en teléfono físico de gama baja** (QA en emulación Edge con GPU).
+1. **Probar en teléfono físico de gama baja** (QA en emulación Edge con GPU).
+2. **Slice B**: infección, primer zombi, inventario básico, transición narrativa y
+   arranque de supervivencia (hambre/resistencia/refugio).
+3. Mejoras opcionales del Slice A: más tipos de arma, diálogos narrados de Calito,
+   redibujar diagonales si se decide, audio ligero.
 
 ## Cómo retomar
 
@@ -74,14 +74,13 @@ node tools/qa-combat.mjs   # combate, misión criminal, KO, guardado v2, táctil
 
 ## Publicación
 
-- Producción actual (v0.1.0): **https://pty-time.vercel.app**
+- Producción: **https://pty-time.vercel.app**
 - Proyecto: `gestion14/pty-time` · framework Vite · build `pnpm build` · salida `dist`.
 - **GitHub conectado a Vercel**: cada push a `main` despliega automáticamente.
-- Para desplegar la v0.2.0: `git push origin main` (auto-deploy) o `pnpm deploy:vercel`.
+- Para desplegar manualmente: `pnpm deploy:vercel`.
 
 ## Bloqueos actuales
 
-- La v0.2.0 no está desplegada: falta push o `vercel deploy`.
 - No se probó en hardware físico; la meta de rendimiento está medida en emulación con GPU.
 - Vercel pertenece a la cuenta autenticada en el CLI (`gestion14`).
 - GitHub pertenece a la cuenta `bampasspty`; el remoto `origin` ya está configurado.
@@ -90,14 +89,15 @@ node tools/qa-combat.mjs   # combate, misión criminal, KO, guardado v2, táctil
 
 - `src/scenes/GameScene.js` — mundo, jugador, NPCs, misiones, combate y simulacro.
 - `src/scenes/UIScene.js` — HUD (misión, vida, munición), diálogos, modales, táctil.
+- `src/scenes/CharacterScene.js` — apariencia de Calito (camisa cosmética).
 - `src/systems/MissionSystem.js` — registro de misiones puro (2 misiones, recompensas).
 - `src/systems/CombatSystem.js` — vida, cargador, cadencia, recarga, derrotas (puro).
-- `src/systems/EnemyAI.js` — máquina de estados de los matones (puro).
+- `src/systems/EnemyAI.js` — máquina de estados de los matones (puro, con LOS).
 - `src/systems/SaveSystem.js` — guardado v2 + migración desde v1.
 - `src/systems/QuakeDrill.js` — fases del simulacro.
 - `src/entities/` — Player, NPC, Enemy, Bullet.
 - `src/world/sanMiguelito.js` — layout del mapa (incluye `enemies`).
-- `src/data/` — NPCs, diálogos, misiones, armas, enemigos y simulacro.
+- `src/data/` — Calito, NPCs, diálogos, misiones, armas, enemigos y simulacro.
 - `public/assets/` — arte generado; `tools/generate_assets.py` lo regenera.
 - `docs/` — maestro, auditoría, contratos, assets y QA.
 
@@ -111,3 +111,10 @@ node tools/qa-combat.mjs   # combate, misión criminal, KO, guardado v2, táctil
 - Eventos por un EventBus propio; misión, combate e IA no dependen de Phaser.
 - El simulacro es 100% ficticio; sin alertas ni datos sísmicos reales.
 - La munición de la pistola se guarda en el save v2 (cargador + reserva).
+- **Calito es el protagonista canónico** y la apariencia es cosmética (camisa): no se
+  vuelve a ofrecer creador de personaje completo.
+- **4 filas visuales de animación** (arriba/abajo/izquierda/derecha) con dirección
+  dominante, movimiento diagonal y apuntado libre; redibujar diagonales queda como
+  mejora opcional futura.
+- El balance del Slice A es: pistola 14 de daño, matón 30 HP, matón jefe 60 HP, reserva
+  inicial 30 balas.

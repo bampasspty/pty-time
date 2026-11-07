@@ -22,8 +22,8 @@ export const WEAPONS = Object.freeze({
     id: 'pistola',
     name: 'LA 9',
     type: 'pistol',
-    damage: 12,
-    cooldownMs: 280,
+    damage: 14,
+    cooldownMs: 260,
     range: 420,
     spreadRad: 0.05,
     magazine: 8,
@@ -36,7 +36,7 @@ export const WEAPONS = Object.freeze({
 export const DEFAULT_WEAPON = 'pistola';
 
 // Munición inicial al empezar una partida nueva.
-export const STARTING_AMMO = Object.freeze({ pistola: 24 });
+export const STARTING_AMMO = Object.freeze({ pistola: 30 });
 
 export function getWeapon(id) {
   return WEAPONS[id] ?? WEAPONS[DEFAULT_WEAPON];

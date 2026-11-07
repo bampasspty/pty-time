@@ -17,6 +17,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.maxHp = def.maxHp;
     this.hp = def.maxHp;
     this.dead = false;
+    this.los = true;
+    this.losAt = 0;
     this.ai = createAI({
       homeX: spawn.x,
       homeY: spawn.y,
@@ -50,6 +52,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       y: this.y,
       player,
       def: this.def,
+      hasLineOfSight: hooks.hasLineOfSight !== false,
       worldWidth: this.scene.physics.world.bounds.width,
       worldHeight: this.scene.physics.world.bounds.height,
     });

@@ -144,6 +144,8 @@ export class UIScene extends Phaser.Scene {
       events.emit('ui:reload');
     }, null, null, 9);
     this.reloadButton.container.setVisible(false);
+    this.weaponButton = this.createTextButton(0, 0, 60, 26, 'ARMA', () => events.emit('ui:weapon'), false, 7);
+    this.weaponButton.container.setVisible(false);
   }
 
   createCircleButton(x, y, radius, label, onClick, onDown, onUp, fontSize = 8) {
@@ -474,6 +476,7 @@ export class UIScene extends Phaser.Scene {
     const showCombat = !busy && Boolean(this.isTouch);
     this.fireButton.container.setVisible(showCombat);
     this.reloadButton.container.setVisible(showCombat);
+    this.weaponButton.container.setVisible(showCombat);
     const showDrill = this.hudState?.drillUnlocked && !busy && !this.drillState?.active && !this.dialogue?.isOpen;
     this.drillButton.container.setVisible(Boolean(showDrill));
     this.crouchButton.container.setVisible(Boolean(this.drillState?.active && this.drillState?.showCrouch));
@@ -490,10 +493,10 @@ export class UIScene extends Phaser.Scene {
     if (this.modal.isOpen) return;
     this.modal.open({
       title: 'CÓMO JUGAR',
-      body: 'San Miguelito te espera. Camina, dispara y hazte respetar en el barrio.',
+      body: 'Calito anda en San Miguelito. Camina, dispara y hazte respetar en el barrio.',
       bullets: [
         'WASD o flechas: caminar. En el teléfono usa el joystick.',
-        'CLIC izquierdo o J: disparar. R: recargar.',
+        'CLIC izquierdo o J: disparar. R: recargar. Q: cambiar de arma.',
         'E, ESPACIO o el botón HABLAR: conversar y avanzar diálogos.',
         'C o CUBRIRSE: agacharte y protegerte.',
         'Sigue la estrella amarilla para saber con quién hablar o dónde pelear.',
@@ -638,6 +641,7 @@ export class UIScene extends Phaser.Scene {
     this.positionCircleButton(this.crouchButton, width - 62, height - 62);
     this.positionCircleButton(this.fireButton, width - 58, height - 138);
     this.positionCircleButton(this.reloadButton, width - 126, height - 104);
+    this.weaponButton.container.setPosition(width - 130, height - 168);
     this.helpButton.container.setPosition(width - 30, 30);
     this.drillButton.container.setPosition(width - 70, 72);
     this.coinsText.setPosition(width - 62, 24);

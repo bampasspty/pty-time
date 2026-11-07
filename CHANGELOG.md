@@ -1,5 +1,40 @@
 # CHANGELOG · PTY Time
 
+## [0.3.0] — 2026-11-07 · Slice A cerrado
+
+Entrega que completa el Slice A de la dirección v1.2 y se despliega a producción.
+
+### Añadido
+
+- **Calito como protagonista canónico** (`src/data/calito.js`): nombre, rol, frase de
+  identidad y variante por defecto. La pantalla de personaje pasa a ser **apariencia**
+  (sólo camisa, cosmética); se retira la elección de cuerpo.
+- **Línea de visión para la IA** (`hasLineOfSight` en `GameScene` + `EnemyAI`): los
+  matones no detectan, persiguen ni atacan a través de edificios; si pierden de vista
+  investigan la última posición conocida y se rinden después de unos segundos.
+- **Cambio de arma**: `Q` en teclado y botón **ARMA** en táctil alternan pistola y puño.
+- **Botón táctil ARMA** y aviso en el manual de CÓMO JUGAR.
+- QA: comprobaciones nuevas de línea de visión, cambio de arma y **disparo real tocando
+  FUEGO** en emulación móvil.
+
+### Cambiado
+
+- **Balance del combate**: pistola 14 de daño y cadencia 260 ms; reserva inicial 30 balas;
+  matón 30 HP / 8 de daño; matón jefe 60 HP / 12 de daño.
+- Pantalla de título: tagline «Calito, del barrio al apocalipsis» y versión v0.3.
+
+### Corregido
+
+- La IA se quedaba en persecución eterna al perder de vista al jugador; ahora investiga
+  la última posición y se rinde a los 6 segundos.
+
+### Notas
+
+- Decisión de producto cerrada: **4 filas visuales** de animación con dirección dominante
+  y apuntado libre; redibujar diagonales queda como mejora opcional futura.
+- Pruebas: **55/55** unitarias; QA de regresión y de combate ampliados.
+- Pendiente: probar en teléfono físico y arrancar el Slice B (infección y zombis).
+
 ## [0.2.0] — 2026-11-07 · Slice A: combate y crimen en San Miguelito
 
 Primer bloque jugable de la dirección v1.2. **Sólo en local: la URL pública sigue en

@@ -21,11 +21,11 @@ export class TitleScene extends Phaser.Scene {
       .text(0, 0, 'SAN MIGUELITO · PANAMÁ', textStyle(10, CSS.yellow, { stroke: '#0b1020', strokeThickness: 4 }))
       .setOrigin(0.5);
     this.tagline = this.add
-      .text(0, 0, 'Un paseo por el barrio, en pixel art', textStyle(8, CSS.soft, { stroke: '#0b1020', strokeThickness: 3 }))
+      .text(0, 0, 'Calito, del barrio al apocalipsis', textStyle(8, CSS.soft, { stroke: '#0b1020', strokeThickness: 3 }))
       .setOrigin(0.5)
       .setAlign('center');
     this.footer = this.add
-      .text(0, 0, 'DEMO v0.1 · HECHO EN PANAMÁ', textStyle(7, CSS.gray))
+      .text(0, 0, 'DEMO v0.3 · HECHO EN PANAMÁ', textStyle(7, CSS.gray))
       .setOrigin(0.5);
 
     this.createBus();

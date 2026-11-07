@@ -81,7 +81,7 @@ const boot = await inGame((gs) => ({
   hud: gs.registry.get('hud'),
 }));
 check('se crean los 4 matones del mapa', boot.enemies === 4 && boot.alive === 4, JSON.stringify(boot));
-check('el HUD trae vida y munición', boot.hud?.hp === 100 && boot.hud?.ammo === 8 && boot.hud?.reserve === 24);
+check('el HUD trae vida y munición', boot.hud?.hp === 100 && boot.hud?.ammo === 8 && boot.hud?.reserve === 30);
 check('la misión activa es el mandado', boot.mission === 'el-mandado');
 
 await page.screenshot({ path: `${OUT}/combat-map.png` });
@@ -114,6 +114,26 @@ const reload = await inGame((gs) => {
 await page.waitForTimeout(1100);
 const afterReload = await inGame((gs) => ({ loaded: gs.combat.loaded, reserve: gs.combat.reserve }));
 check('R/botón recarga el cargador', reload.reloading === true && afterReload.loaded === 8, JSON.stringify(afterReload));
+
+// cambio de arma y línea de visión
+const weapon = await inGame((gs) => {
+  gs.toggleWeapon();
+  const melee = { id: gs.combat.weaponId, hudWeapon: gs.registry.get('hud')?.weapon };
+  gs.toggleWeapon();
+  const pistol = { id: gs.combat.weaponId, hudWeapon: gs.registry.get('hud')?.weapon };
+  return { melee, pistol };
+});
+check(
+  'Q/botón ARMA alterna pistola y puño',
+  weapon.melee.id === 'puno' && weapon.melee.hudWeapon === 'EL PUÑO' && weapon.pistol.id === 'pistola',
+  JSON.stringify(weapon),
+);
+
+const los = await inGame((gs) => ({
+  blocked: gs.hasLineOfSight(60, 250, 190, 250),
+  clear: gs.hasLineOfSight(400, 350, 500, 350),
+}));
+check('la línea de visión detecta muros', los.blocked === false && los.clear === true, JSON.stringify(los));
 
 // --------------------------------------------------- misión criminal completa
 const crime = await inGame((gs) => {
@@ -227,10 +247,43 @@ const mobileUi = await mpage.evaluate(() => {
   return {
     fire: ui.fireButton.container.visible,
     reload: ui.reloadButton.container.visible,
+    weapon: ui.weaponButton.container.visible,
     joystick: ui.joyBase.visible,
+    firePos: { x: ui.fireButton.container.x, y: ui.fireButton.container.y },
   };
 });
-check('controles táctiles de combate visibles', mobileUi.fire && mobileUi.reload && mobileUi.joystick, JSON.stringify(mobileUi));
+check(
+  'controles táctiles de combate visibles',
+  mobileUi.fire && mobileUi.reload && mobileUi.weapon && mobileUi.joystick,
+  JSON.stringify(mobileUi),
+);
+
+const mobileBefore = await mpage.evaluate(() => {
+  const gs = window.__PTY_GAME__.scene.getScene('Game');
+  return { loaded: gs.combat.loaded, weapon: gs.combat.weaponId };
+});
+await mpage.touchscreen.tap(mobileUi.firePos.x, mobileUi.firePos.y);
+await mpage.waitForTimeout(350);
+const mobileAfter = await mpage.evaluate(() => {
+  const gs = window.__PTY_GAME__.scene.getScene('Game');
+  return { loaded: gs.combat.loaded, weapon: gs.combat.weaponId };
+});
+check(
+  'tocar FUEGO dispara en el teléfono',
+  mobileAfter.loaded === mobileBefore.loaded - 1,
+  JSON.stringify({ mobileBefore, mobileAfter }),
+);
+
+const weaponPos = await mpage.evaluate(() => {
+  const ui = window.__PTY_GAME__.scene.getScene('UI');
+  return { x: ui.weaponButton.container.x, y: ui.weaponButton.container.y };
+});
+await mpage.touchscreen.tap(weaponPos.x, weaponPos.y);
+await mpage.waitForTimeout(250);
+const mobileWeapon = await mpage.evaluate(
+  () => window.__PTY_GAME__.scene.getScene('Game').combat.weaponId,
+);
+check('tocar ARMA cambia de arma en el teléfono', mobileWeapon === 'puno', mobileWeapon);
 await mpage.screenshot({ path: `${OUT}/combat-mobile.png` });
 
 // frame rate aproximado en el mapa con enemigos

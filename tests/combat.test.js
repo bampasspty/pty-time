@@ -8,7 +8,7 @@ test('estado inicial del jugador', () => {
   assert.equal(combat.maxHp, 100);
   assert.equal(combat.weaponId, 'pistola');
   assert.equal(combat.loaded, 8);
-  assert.equal(combat.reserve, 24);
+  assert.equal(combat.reserve, 30);
   assert.equal(combat.defeats, 0);
 });
 
@@ -47,7 +47,7 @@ test('sin balas obliga a recargar y la recarga consume reserva', () => {
   assert.equal(combat.tick(now + 100).reloaded, false);
   assert.equal(combat.tick(now + 900).reloaded, true);
   assert.equal(combat.loaded, 8);
-  assert.equal(combat.reserve, 16);
+  assert.equal(combat.reserve, 22);
 });
 
 test('recarga manual rellena solo lo que falta', () => {
@@ -58,7 +58,7 @@ test('recarga manual rellena solo lo que falta', () => {
   assert.equal(combat.startReload(1500), true);
   combat.tick(2500);
   assert.equal(combat.loaded, 8);
-  assert.equal(combat.reserve, 22);
+  assert.equal(combat.reserve, 28);
 });
 
 test('sin reserva no se puede recargar', () => {
@@ -99,7 +99,7 @@ test('la reaparición rellena el cargador desde la reserva', () => {
   combat.tryFire(1400);
   combat.respawn();
   assert.equal(combat.loaded, 8);
-  assert.equal(combat.reserve, 22);
+  assert.equal(combat.reserve, 28);
 });
 
 test('ida y vuelta del estado de combate al guardado', () => {
@@ -112,6 +112,6 @@ test('ida y vuelta del estado de combate al guardado', () => {
   const restored = new CombatSystem({ combat: combat.toSave() });
   assert.equal(restored.hp, 70);
   assert.equal(restored.loaded, 7);
-  assert.equal(restored.reserve, 34);
+  assert.equal(restored.reserve, 40);
   assert.equal(restored.defeats, 2);
 });

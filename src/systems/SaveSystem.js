@@ -6,6 +6,7 @@
 // (campos step/hasChancla/coins en la raíz) se migran automáticamente al leer.
 
 import { MISSIONS, MISSION_ORDER } from '../data/missions.js';
+import { CALITO } from '../data/calito.js';
 import { DEFAULT_WEAPON, STARTING_AMMO, WEAPONS } from '../data/weapons.js';
 
 // La clave se mantiene para no perder las partidas de la demo v0.1.0.
@@ -27,7 +28,7 @@ export function defaultSave() {
   }
   return {
     version: SAVE_VERSION,
-    playerVariant: 'm-blue',
+    playerVariant: CALITO.defaultVariant,
     started: false,
     player: { hp: 100, maxHp: 100 },
     combat: {
