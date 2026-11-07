@@ -17,7 +17,8 @@ teléfono.
 
 ## Demo publicada
 
-**https://pty-time.vercel.app**
+- **Jugar:** https://pty-time.vercel.app
+- **Repositorio:** https://github.com/bampasspty/pty-time
 
 Desplegada en Vercel (proyecto `pty-time`). Verificada desde la URL pública:
 HTTP 200, 0 errores, 0 assets faltantes y 58 FPS en Edge con GPU.
@@ -142,6 +143,8 @@ pnpm deploy:vercel
 
 El proyecto quedó vinculado a la cuenta `gestion14`. Para publicar desde otra cuenta,
 hay que crear un proyecto nuevo con `vercel login` y `vercel deploy --prod`.
+
+Repositorio de código: **https://github.com/bampasspty/pty-time** (rama `main`).
 
 ## Assets y licencias
 

@@ -108,7 +108,7 @@ Generadas en `qa/` (ignorado por git):
 
 ## 7. Bloqueos / riesgos
 
-- GitHub remoto: sin credenciales en el entorno. Vercel ya está publicado.
+- Repositorio remoto: https://github.com/bampasspty/pty-time (rama `main`).
 - Hardware físico de gama baja no probado.
 - Sin audio en esta entrega.
 - El simulacro no debe presentarse como alerta real: el disclaimer está en intro,

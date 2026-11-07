@@ -40,6 +40,7 @@ Primera entrega jugable (Entrega A · PTY Time Playable) de la demo de San Migue
 
 - Publicado en Vercel: **https://pty-time.vercel.app** (proyecto `gestion14/pty-time`).
 - Verificado desde la URL pública: HTTP 200, 0 errores, 0 respuestas 404 y 58 FPS.
+- Código publicado en GitHub: **https://github.com/bampasspty/pty-time**.
 
 ### Notas
 

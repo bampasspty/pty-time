@@ -1,9 +1,9 @@
 # HANDOFF · PTY Time
 
-**Última actualización:** 2026-11-06 (demo v0.1.0 publicada)
-**Estado:** Entrega A jugable y **publicada en Vercel**:
-**https://pty-time.vercel.app** (proyecto `gestion14/pty-time`).
-GitHub remoto todavía no configurado.
+**Última actualización:** 2026-11-06 (demo v0.1.0 publicada y subida a GitHub)
+**Estado:** Entrega A jugable y **publicada**:
+- Vercel: **https://pty-time.vercel.app** (proyecto `gestion14/pty-time`)
+- GitHub: **https://github.com/bampasspty/pty-time** (rama `main`)
 
 ## Lo que ya está funcionando
 
@@ -45,12 +45,11 @@ node tools/qa-final.mjs
 
 ## Pendiente / siguiente tarea concreta
 
-1. **Subir a GitHub**: no hay `gh` ni credenciales en el entorno. Crear repo,
-   `git remote add origin ...` y `git push -u origin main`.
-2. **Probar en teléfono físico de gama baja** (el QA fue Edge headless con GPU).
-3. Opcional para la Entrega B: audio ligero, segundo sector de San Miguelito, más
+1. **Probar en teléfono físico de gama baja** (el QA fue Edge headless con GPU).
+2. Opcional para la Entrega B: audio ligero, segundo sector de San Miguelito, más
    misiones, modo historia, eventos y multijugador (evaluar).
-4. Para re-desplegar: `pnpm deploy:vercel` (CLI de Vercel ya instalado como devDependency).
+3. Para re-desplegar: `pnpm deploy:vercel` (CLI de Vercel ya instalado como devDependency).
+4. Para publicar cambios: `git push origin main`.
 
 ## Publicación actual
 
@@ -61,9 +60,9 @@ node tools/qa-final.mjs
 
 ## Bloqueos actuales
 
-- Sin credenciales de GitHub: el repositorio no se puede publicar remotamente.
 - No se probó en hardware físico; la meta de rendimiento está medida en emulación con GPU.
 - Vercel pertenece a la cuenta que ya estaba autenticada en el CLI (`gestion14`).
+- GitHub pertenece a la cuenta `bampasspty`; el remoto `origin` ya está configurado.
 
 ## Archivos clave
 
