@@ -125,6 +125,9 @@ Zombis del Slice B (1 hoja), nombre `enemy-{id}.png`, mismo layout 48x96:
 Objetos de suministro 16x16 en `props/`: `vendaje.png` (cruz roja), `lata.png`
 (comida) y `caja.png` (caja de balas).
 
+Armas recogibles 16x16 en `props/` (Fase 3): `tubo.png`, `subfusil.png`,
+`escopeta.png` y `rifle.png`.
+
 Los efectos de combate (bala, fogonazo, impacto y mira) **no son PNG del contrato**:
 se generan en memoria en `BootScene.createFxTextures()`.
 

@@ -71,3 +71,13 @@ test('spawns de zombis y suministros del Slice B son válidos', () => {
     assert.ok(supply.y > 0 && supply.y < map.height * TILE_SIZE, JSON.stringify(supply));
   }
 });
+
+test('los pickups de armas del mapa son validos', () => {
+  assert.ok(Array.isArray(map.weaponPickups), 'hay armas repartidas');
+  assert.ok(map.weaponPickups.length >= 3);
+  for (const pickup of map.weaponPickups) {
+    assert.ok(['tubo', 'subfusil', 'escopeta', 'rifle'].includes(pickup.id), pickup.id);
+    assert.ok(pickup.x > 0 && pickup.x < map.width * TILE_SIZE, JSON.stringify(pickup));
+    assert.ok(pickup.y > 0 && pickup.y < map.height * TILE_SIZE, JSON.stringify(pickup));
+  }
+});

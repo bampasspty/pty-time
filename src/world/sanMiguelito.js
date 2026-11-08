@@ -375,6 +375,14 @@ export const SAN_MIGUELITO = {
     { id: 'caja', x: 300, y: 600 },
   ],
 
+  // Armas repartidas por el barrio (Fase 3). id = arma de data/weapons.js.
+  weaponPickups: [
+    { id: 'tubo', x: 528, y: 448 },
+    { id: 'subfusil', x: 296, y: 360 },
+    { id: 'escopeta', x: 800, y: 620 },
+    { id: 'rifle', x: 80, y: 620 },
+  ],
+
   zones: [
     // Zonas abiertas (refugio del simulacro de terremoto).
     { id: 'cancha', name: 'Cancha de San Isidro', type: 'open', x: 592, y: 64, w: 224, h: 160 },

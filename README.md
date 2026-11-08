@@ -11,10 +11,14 @@ teléfono.
 > [`docs/MASTER_DOC.md`](docs/MASTER_DOC.md) y la auditoría de adaptación, con lo que ya
 > existe y lo que falta, está en [`docs/V1.2_AUDIT.md`](docs/V1.2_AUDIT.md).
 
-## Estado de la demo actual (v0.4.0 · Slice B y MVP cerrados)
+## Estado de la demo actual (v0.5.0 · arsenal y progresión)
 
-La versión jugable ya cierra el **MVP del Documento Maestro**:
+La versión jugable cierra el **MVP del Documento Maestro** y arranca la **Fase 3**:
 
+- **Arsenal**: pistola, puño, tubo, subfusil «LA MICRO», escopeta «LA RECORTADA» y rifle
+  «EL 22», cada uno con su munición. Las armas nuevas se recogen repartidas por el barrio.
+- **Progresión**: experiencia por enemigos y misiones; niveles con +10 de vida máxima y
+  +5 % de daño; el HUD muestra nivel y XP.
 - **Introducción narrativa** de Calito al empezar partida nueva.
 - **El colapso (Slice B)**: PTY Alerta ficticia con disclaimer, matones que huyen,
   **horda de infectados**, capítulo **«El colapso»** (sobrevive a 5 y corre a la fonda)
@@ -23,10 +27,9 @@ La versión jugable ya cierra el **MVP del Documento Maestro**:
   disparos y cada uno camina a distinta velocidad.
 - **Inventario básico**: vendajes, latas y cajas de balas, panel MOCHILA con uso de
   objetos y **suministros repartidos por el mapa**.
-- **Guardado v3** con mundo, historia e inventario; migra solo desde v1 y v2.
+- **Guardado v4** con armas, progresión, mundo, historia e inventario; migra solo desde
+  v1, v2 y v3.
 - **Calito como protagonista**: identidad fija; la camisa es cosmética.
-- **Combate**: pistola «LA 9» con cargador, reserva, recarga y cadencia; puño cuerpo a
-  cuerpo; cambio de arma con `Q` o botón ARMA; apuntado libre.
 - **Matones con IA**: 4 enemigos con línea de visión, investigación de la última posición
   conocida y reacción a los disparos.
 - **Misión criminal** *Los matones de la plaza* y misión **El mandado de Doña Nena**.
@@ -40,7 +43,7 @@ con PTY Alerta y guardado local.
 > dirección dominante. Es una decisión de producto tomada en la auditoría para no
 > redibujar todo el arte; las diagonales quedan como mejora opcional futura.
 
-> **Estado de publicación:** https://pty-time.vercel.app sirve la **v0.4.0**.
+> **Estado de publicación:** https://pty-time.vercel.app sirve la **v0.5.0**.
 
 > **Evento sísmico:** el simulacro de terremoto es ficción dentro del videojuego. No es
 > una alerta real, no se conecta a sistemas de monitoreo y no sustituye información
@@ -54,16 +57,16 @@ con PTY Alerta y guardado local.
 
 ## Demo publicada
 
-- **Jugar:** https://pty-time.vercel.app (v0.4.0)
+- **Jugar:** https://pty-time.vercel.app (v0.5.0)
 - **Repositorio:** https://github.com/bampasspty/pty-time
 
 Desplegada en Vercel (proyecto `pty-time`). Verificación automatizada contra la URL
-pública: HTTP 200, 10/10 comprobaciones (`tools/qa-prod.mjs`), 0 errores de consola,
+pública: HTTP 200, 12/12 comprobaciones (`tools/qa-prod.mjs`), 0 errores de consola,
 49–58 FPS en Edge headless y 56–57 FPS en gama baja emulada (CPU 4×, 844×390 táctil).
 
 ## Estado
 
-Demo jugable con el **MVP cerrado** (Slices A y B). Incluye:
+Demo jugable con el **MVP cerrado** (Slices A y B) y la **Fase 3 arrancada**. Incluye:
 
 - Pantalla de inicio, ayuda y apariencia de Calito (camisa cosmética).
 - **Calito** controlable, con animación de caminar y profundidad; movimiento diagonal.
@@ -75,15 +78,17 @@ Demo jugable con el **MVP cerrado** (Slices A y B). Incluye:
 - Misión **El mandado de Doña Nena** con 5 pasos y recompensa.
 - Misión criminal **Los matones de la plaza** con combatientes y recompensa.
 - **Capítulo III · El colapso**: sobrevive a los infectados y llega a la fonda.
-- Combate cenital con pistola, puño, munición, recarga y enemigos con IA.
+- Combate cenital con 6 armas (puño, tubo, pistola, subfusil, escopeta y rifle), munición
+  por arma, recarga, recarga y enemigos con IA.
+- **Armas repartidas por el barrio** para recoger y **progresión con XP y niveles**.
 - **Horda de zombis** (infectados) con IA propia y suministros en el mapa.
 - **Inventario básico** con panel MOCHILA, vendajes, latas y cajas de balas.
-- Vida, daño, KO y reaparición; barra de vida y munición en el HUD.
-- Guardado automático **v3** en `localStorage` (migra v1 y v2) y opción CONTINUAR.
+- Vida, daño, KO y reaparición; barra de vida, munición, nivel y XP en el HUD.
+- Guardado automático **v4** en `localStorage` (migra v1, v2 y v3) y opción CONTINUAR.
 - Simulacro de terremoto desbloqueable con advertencia visible y recomendaciones
   educativas.
 - HUD de misión, yapa, munición y mochila; ayuda, controles táctiles y toasts.
-- Assets de pixel art generados por código (69 PNG, 46.6 KB) y fuente Press Start 2P.
+- Assets de pixel art generados por código (73 PNG, 47.4 KB) y fuente Press Start 2P.
 
 ## Requisitos
 
@@ -153,6 +158,15 @@ misión, la vida, el arma con su munición y la yapa acumulada.
 Durante el colapso aparecen **suministros** (vendajes, latas, cajas de balas) que puedes
 recoger con el botón HABLAR y usar desde la **MOCHILA**.
 
+### Arsenal y progresión (Fase 3)
+
+1. Calito empieza con **el puño** y **la 9**. Repartidas por el barrio hay 4 armas:
+   **tubo** (cuerpo a cuerpo), **subfusil**, **escopeta** y **rifle**.
+2. Recógelas con **HABLAR** y cambia entre ellas con **Q** o el botón **ARMA**; cada una
+   usa su propia munición (se recarga con R).
+3. Derrotar enemigos y completar misiones da **XP**. Cada nivel suma **+10 de vida máxima**
+   y **+5 % de daño**, y el HUD muestra nivel y progreso.
+
 Si te tumban, reapareces en el punto de partida con la vida completa.
 
 Durante el simulacro el juego muestra el aviso:
@@ -179,7 +193,7 @@ src/
 │   └── UIScene.js          HUD, historia, mochila, diálogos, modales y táctil
 ├── entities/               Player, NPC, Enemy, Bullet
 ├── systems/                MissionSystem, CombatSystem, EnemyAI, InventorySystem,
-│                           SaveSystem, QuakeDrill, EventBus, InputState
+│                           ProgressionSystem, SaveSystem, QuakeDrill, EventBus, InputState
 ├── world/                  mapa de San Miguelito, defs y MapBuilder
 ├── ui/                     DialogueBox, Modal, PixelButton, Backdrop
 └── data/                   Calito, historia, NPCs, diálogos, misiones, armas,
@@ -187,28 +201,29 @@ src/
 public/assets/              tiles, personajes, enemigos, edificios, props, UI y fuente
 tools/generate_assets.py    generador de pixel art (Pillow)
 tools/qa-final.mjs          QA E2E de la demo (misión, simulacro, móvil)
-tools/qa-combat.mjs         QA E2E del Slice A y B (combate, colapso, inventario)
+tools/qa-combat.mjs         QA E2E del Slice A/B y Fase 3 (armas, XP, colapso, inventario)
 tools/qa-prod.mjs           verificación de la URL pública de Vercel
-tests/                      pruebas node:test (lógica, mapa, assets, combate, IA, inventario)
+tests/                      pruebas node:test (lógica, mapa, assets, combate, IA, inventario,
+                            progresión)
 docs/                       maestro, auditoría, backlog, contratos, assets y QA
 ```
 
 La lógica de juego pesada es pura y testeable, sin Phaser: `MissionSystem` (registro de
-misiones), `CombatSystem` (vida, cargador, cadencia, recarga), `EnemyAI` (matones y
-zombis) e `InventorySystem` (pilas y capacidad). `SaveSystem` guarda el esquema v3 y migra
-partidas v1/v2. Los diálogos se resuelven con `getDialogue(npcId, ctx)`; `GameScene` aplica
-el cambio, actualiza el HUD y guarda.
+misiones), `CombatSystem` (vida, armas, cargador, cadencia, recarga), `EnemyAI` (matones y
+zombis), `InventorySystem` (pilas y capacidad) y `ProgressionSystem` (XP y niveles).
+`SaveSystem` guarda el esquema v4 y migra partidas v1/v2/v3. Los diálogos se resuelven con
+`getDialogue(npcId, ctx)`; `GameScene` aplica el cambio, actualiza el HUD y guarda.
 
 ## Rendimiento
 
-- Phaser 3.90 + Vite 7; bundle de producción ≈ 1.35 MB (≈ 375 KB gzip).
-- Assets de juego: **46.6 KB** de 69 PNG.
-- Un solo tilemap para el suelo; ~17 edificios, 147 props, 8 NPCs, 4 matones y hasta
-  10 infectados.
+- Phaser 3.90 + Vite 7; bundle de producción ≈ 1.35 MB (≈ 377 KB gzip).
+- Assets de juego: **47.4 KB** de 73 PNG.
+- Un solo tilemap para el suelo; ~17 edificios, 147 props, 8 NPCs, 4 matones, hasta
+  10 infectados y 4 armas en el mapa.
 - Efectos de combate con texturas generadas en memoria y tweens cortos; sin partículas.
-- QA automatizado en Edge headless con GPU: **57–60 FPS a 1280 × 720** con combate y
-  colapso activos, y **50–57 FPS a 844 × 390** (ver `docs/QA_REPORT.md`). Falta validar
-  en un teléfono físico de gama baja.
+- QA automatizado en Edge headless con GPU: **53–60 FPS a 1280 × 720** con combate,
+  armas y colapso activos, y **50–57 FPS a 844 × 390** (ver `docs/QA_REPORT.md`). Falta
+  validar en un teléfono físico de gama baja.
 
 ## Publicación en Vercel
 
@@ -242,8 +257,8 @@ Repositorio de código: **https://github.com/bampasspty/pty-time** (rama `main`)
 ## Limitaciones conocidas
 
 - Una sola zona jugable (San Miguelito); falta la expansión de mapa del documento.
-- Un solo tipo de zombi (infectado) y un inventario básico; los sistemas completos de
-  acción, crimen y supervivencia quedan para las siguientes fases (ver `docs/BACKLOG.md`).
+- Un solo tipo de zombi (infectado), inventario básico y sin fabricación ni hambre: el
+  resto de la Fase 3 y las fases de crimen/supervivencia están en `docs/BACKLOG.md`.
 - Las animaciones mantienen 4 filas visuales; el movimiento diagonal usa la dirección
   dominante (decisión de producto, ver `docs/V1.2_AUDIT.md` §6).
 - Sin música ni efectos de sonido en esta entrega.

@@ -1,5 +1,44 @@
 # CHANGELOG · PTY Time
 
+## [0.5.0] — 2026-11-08 · Fase 3: arsenal y progresión
+
+Primer bloque de la Fase 3 del Documento Maestro: completar las armas del §5.2 y la
+progresión del §5.5.
+
+### Añadido
+
+- **Cuatro armas nuevas** (`src/data/weapons.js`):
+  - **EL TUBO**: arma improvisada cuerpo a cuerpo (17 de daño).
+  - **LA MICRO**: subfusil automático (24 balas, cadencia rápida, dispersión alta).
+  - **LA RECORTADA**: escopeta de 5 perdigones por disparo, brutal de cerca.
+  - **EL 22**: rifle de daño alto, cadencia lenta y mucho alcance.
+- **Munición separada por arma**: pistola, subfusil, escopeta y rifle con cargador y
+  reserva propios; recarga y cadencia por arma.
+- **Armas repartidas por el barrio** (`weaponPickups` en el mapa): tubo, subfusil,
+  escopeta y rifle se recogen con HABLAR y se suman al arsenal.
+- **Ciclo de armas**: `Q`/botón ARMA recorre todas las armas que Calito tiene (antes solo
+  alternaba pistola y puño).
+- **Progresión** (`src/systems/ProgressionSystem.js`): experiencia por enemigos y
+  misiones, niveles con +10 de vida máxima y +5 % de daño por nivel, HUD con nivel y XP.
+- **Guardado v4** con armas en propiedad, progresión y armas recogidas; migra desde v1,
+  v2 y v3.
+- **Arte**: cuatro iconos de arma 16×16 generados por código.
+- **Pruebas**: 93/93 unitarias (nuevas de progresión, armas y migración v3 → v4);
+  QA de combate ampliado a 35/35 y regresión 20/20.
+
+### Cambiado
+
+- El HUD muestra el nivel y la experiencia además de vida, munición y mochila.
+- El daño de todas las armas escala con el nivel.
+- Los avisos de recogida de armas y el cableado de munición son genéricos por tipo.
+
+### Notas
+
+- La fabricación (§5.4) y la supervivencia con hambre/resistencia (§7) siguen
+  pendientes: son el resto de la Fase 3.
+- Balance nuevo: subfusil 9 de daño, escopeta 8×5 perdigones, rifle 26 de daño.
+- Desplegado en https://pty-time.vercel.app (build de esta versión).
+
 ## [0.4.0] — 2026-11-07 · Slice B: el colapso (MVP del Documento Maestro cerrado)
 
 Cierra el MVP del §18: introducción narrativa, primera infección, un tipo de zombi,

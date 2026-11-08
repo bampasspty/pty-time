@@ -12,6 +12,8 @@ import { inputState } from '../systems/InputState.js';
 import { MissionSystem } from '../systems/MissionSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
+import { ProgressionSystem } from '../systems/ProgressionSystem.js';
+import { getWeapon, isWeaponId } from '../data/weapons.js';
 import { readSave, sanitizeSave, writeSave } from '../systems/SaveSystem.js';
 import { QuakeDrill } from '../systems/QuakeDrill.js';
 import { MapBuilder } from '../world/MapBuilder.js';
@@ -41,6 +43,8 @@ export class GameScene extends Phaser.Scene {
     this.mission = new MissionSystem(this.save);
     this.combat = new CombatSystem(this.save);
     this.inventory = new InventorySystem(this.save);
+    this.progression = new ProgressionSystem(this.save);
+    this.combat.setMaxHp(100 + this.progression.maxHpBonus);
     this.phase = this.save.world.phase;
     this.storyOpen = false;
     this.pendingCollapse = false;
@@ -48,6 +52,7 @@ export class GameScene extends Phaser.Scene {
     this.zombiesSpawned = false;
     this.zombieList = [];
     this.supplies = [];
+    this.weaponPickups = [];
     this.wasStarted = Boolean(this.save.started);
     this.dialogueOpen = false;
     this.modalOpen = false;
@@ -103,6 +108,7 @@ export class GameScene extends Phaser.Scene {
     this.createQuestMarker();
     this.createPrompt();
     this.createCombat(built);
+    this.spawnWeaponPickups();
 
     this.setupCamera();
     this.setupInput();
@@ -230,15 +236,13 @@ export class GameScene extends Phaser.Scene {
     if (this.keys.fire.isDown || mouseHeld) this.tryShoot(time);
   }
 
-  // Q / botón ARMA: alterna entre la pistola y el puño.
+  // Q / botón ARMA: cicla entre las armas que Calito tiene.
   toggleWeapon() {
-    const next = this.combat.weaponId === 'pistola' ? 'puno' : 'pistola';
-    if (!this.combat.equip(next)) return;
+    if (!this.combat.cycleWeapon()) return;
     this.emitHud();
-    events.emit(
-      'hud:toast',
-      next === 'puno' ? 'Guardaste la 9. Ahora es a puño.' : 'Sacaste la 9. Cuidado cómo la usas.',
-    );
+    const weapon = this.combat.weapon;
+    const ammo = weapon.ammoType ? ` · ${this.combat.reserve}` : '';
+    events.emit('hud:toast', `${weapon.name}${ammo}`);
   }
 
   reloadWeapon() {
@@ -261,33 +265,42 @@ export class GameScene extends Phaser.Scene {
     if (weapon.type === 'melee') {
       this.meleeSwing(now, angle, weapon);
     } else {
-      this.spawnBullet(angle, weapon.damage);
-      this.cameras.main.shake(55, 0.0018);
+      const damage = this.progression.damageFor(result.damage);
+      this.spawnBullet(angle, damage, result.pellets ?? 1);
+      this.cameras.main.shake(55, this.pelletsShake(result.pellets ?? 1));
     }
     this.alertEnemiesNear(this.player.x, this.player.y, 260);
     this.emitHud();
     return true;
   }
 
-  spawnBullet(angle, damage) {
+  pelletsShake(pellets) {
+    return pellets > 1 ? 0.005 : 0.0018;
+  }
+
+  spawnBullet(angle, damage, pellets = 1) {
     const weapon = this.combat.weapon;
-    const spread = (Math.random() - 0.5) * 2 * (weapon.spreadRad ?? 0);
-    const finalAngle = angle + spread;
     const originY = this.player.y - AIM_HEIGHT;
-    const x = this.player.x + Math.cos(finalAngle) * 9;
-    const y = originY + Math.sin(finalAngle) * 9;
-    const bullet = this.bullets.get(x, y, 'fx-bullet');
-    if (!bullet) return;
-    bullet.fire(x, y, finalAngle, {
-      speed: weapon.bulletSpeed,
-      range: weapon.range,
-      damage,
-    });
-    this.showMuzzle(x, y, finalAngle);
+    const count = Math.max(1, Math.min(8, Math.floor(pellets)));
+    for (let i = 0; i < count; i++) {
+      const spread = (Math.random() - 0.5) * 2 * (weapon.spreadRad ?? 0);
+      const finalAngle = angle + spread;
+      const x = this.player.x + Math.cos(finalAngle) * 9;
+      const y = originY + Math.sin(finalAngle) * 9;
+      const bullet = this.bullets.get(x, y, 'fx-bullet');
+      if (!bullet) continue;
+      bullet.fire(x, y, finalAngle, {
+        speed: weapon.bulletSpeed,
+        range: weapon.range,
+        damage,
+      });
+      this.showMuzzle(x, y, finalAngle);
+    }
   }
 
   meleeSwing(now, angle, weapon) {
     let hits = 0;
+    const damage = this.progression.damageFor(weapon.damage);
     for (const enemy of this.enemies) {
       if (enemy.dead) continue;
       const d = Math.hypot(enemy.x - this.player.x, enemy.y - this.player.y);
@@ -295,7 +308,7 @@ export class GameScene extends Phaser.Scene {
       const enemyAngle = this.angleTo(enemy.x, enemy.y - AIM_HEIGHT);
       const diff = Math.abs(Phaser.Math.Angle.Wrap(enemyAngle - angle));
       if (diff > 1.1) continue;
-      this.hitEnemy({ damage: weapon.damage, kill: () => {} }, enemy);
+      this.hitEnemy({ damage, kill: () => {} }, enemy);
       hits += 1;
     }
     if (hits > 0) this.cameras.main.shake(70, 0.002);
@@ -350,8 +363,9 @@ export class GameScene extends Phaser.Scene {
     this.emitHud();
   }
 
-  onEnemyDefeated() {
+  onEnemyDefeated(enemy) {
     this.combat.addDefeat(1);
+    this.grantXp(enemy?.def?.xp ?? 10);
     const progress = this.mission.handleEnemyDefeated();
     if (progress.progressed) {
       if (progress.done) {
@@ -363,6 +377,20 @@ export class GameScene extends Phaser.Scene {
       this.persist();
     }
     this.emitHud();
+  }
+
+  // Reparte experiencia y aplica la subida de nivel.
+  grantXp(amount) {
+    const result = this.progression.addXp(amount);
+    if (!result.gained) return result;
+    if (result.leveledUp) {
+      this.combat.setMaxHp(100 + this.progression.maxHpBonus);
+      this.cameras.main.flash(160, 255, 220, 80);
+      events.emit('hud:toast', `¡Nivel ${result.level}! +10 vida y +5% de daño`);
+      this.persist();
+      this.emitHud();
+    }
+    return result;
   }
 
   // Línea de visión aproximada: muestrea la recta entre dos puntos y comprueba
@@ -502,6 +530,10 @@ export class GameScene extends Phaser.Scene {
       reputation: this.mission.reputation.barrio,
       mochila: this.inventory.size,
       phase: this.phase,
+      level: this.progression.level,
+      xp: this.progression.xp,
+      xpNext: this.progression.xpNext,
+      owned: this.combat.owned.length,
     };
   }
 
@@ -642,6 +674,38 @@ export class GameScene extends Phaser.Scene {
     this.emitPromptState(false, '');
     this.lastPromptKey = '';
     events.emit('hud:toast', 'Guardaste: ' + item.name);
+    this.persist();
+    this.emitHud();
+  }
+
+  // Armas repartidas por el barrio: se recogen con HABLAR y se guardan.
+  spawnWeaponPickups() {
+    const taken = new Set(this.save.world.weaponsTaken ?? []);
+    for (const [index, entry] of (SAN_MIGUELITO.weaponPickups ?? []).entries()) {
+      const key = entry.id + '-' + index;
+      if (taken.has(key) || !isWeaponId(entry.id)) continue;
+      const sprite = this.add.image(entry.x, entry.y, 'prop-' + entry.id).setDepth(entry.y + 1);
+      const glow = this.add
+        .ellipse(entry.x, entry.y - 6, 24, 10, COLORS.cyan, 0.2)
+        .setDepth(entry.y);
+      this.tweens.add({ targets: glow, alpha: 0.04, duration: 850, yoyo: true, repeat: -1 });
+      this.weaponPickups.push({ key, id: entry.id, x: entry.x, y: entry.y, sprite, glow });
+    }
+  }
+
+  pickupWeapon(pickup) {
+    const weapon = getWeapon(pickup.id);
+    const isNew = this.combat.addWeapon(pickup.id);
+    this.combat.equip(pickup.id);
+    pickup.sprite?.destroy();
+    pickup.glow?.destroy();
+    this.weaponPickups = this.weaponPickups.filter((entry) => entry !== pickup);
+    this.save.world.weaponsTaken.push(pickup.key);
+    this.focus = null;
+    this.hidePrompt();
+    this.emitPromptState(false, '');
+    this.lastPromptKey = '';
+    events.emit('hud:toast', isNew ? 'Nueva arma: ' + weapon.name : weapon.name + ' (ya la tenías)');
     this.persist();
     this.emitHud();
   }
@@ -883,6 +947,14 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    for (const pickup of this.weaponPickups) {
+      const d = Math.hypot(pickup.x - this.player.x, pickup.y - this.player.y);
+      if (d < 28 && d < bestDist) {
+        best = { type: 'weapon', pickup, label: 'RECOGER', y: pickup.y - 16 };
+        bestDist = d;
+      }
+    }
+
     if (this.mission.canCollect('chancla')) {
       for (const item of this.items) {
         if (item.id !== 'chancla' || !item.sprite?.visible) continue;
@@ -898,7 +970,14 @@ export class GameScene extends Phaser.Scene {
     if (best) {
       this.promptText.setText(best.label);
       this.promptBg.width = Math.max(54, this.promptText.width + 12);
-      const promptX = best.type === 'npc' ? best.npc.x : best.type === 'item' ? best.item.x : best.supply.x;
+      const promptX =
+        best.type === 'npc'
+          ? best.npc.x
+          : best.type === 'item'
+            ? best.item.x
+            : best.type === 'supply'
+              ? best.supply.x
+              : best.pickup.x;
       this.prompt.setPosition(promptX, best.y);
       this.prompt.setVisible(true);
       this.emitPromptState(true, best.label);
@@ -916,6 +995,8 @@ export class GameScene extends Phaser.Scene {
       this.prompt.setPosition(this.focus.item.x, this.focus.item.y - 16);
     } else if (this.focus?.type === 'supply') {
       this.prompt.setPosition(this.focus.supply.x, this.focus.supply.y - 16);
+    } else if (this.focus?.type === 'weapon') {
+      this.prompt.setPosition(this.focus.pickup.x, this.focus.pickup.y - 16);
     }
     this.prompt.setDepth(20000);
   }
@@ -937,6 +1018,7 @@ export class GameScene extends Phaser.Scene {
     if (this.focus.type === 'npc') this.openDialogue(this.focus.npc);
     else if (this.focus.type === 'item') this.pickupItem(this.focus.item);
     else if (this.focus.type === 'supply') this.pickupSupply(this.focus.supply);
+    else if (this.focus.type === 'weapon') this.pickupWeapon(this.focus.pickup);
   }
 
   openDialogue(npc) {
@@ -989,6 +1071,7 @@ export class GameScene extends Phaser.Scene {
     this.updateQuestMarker();
     this.emitHud();
     if (result.toast) events.emit('hud:toast', result.toast);
+    if (result.reward?.xp) this.grantXp(result.reward.xp);
 
     // Los matones vuelven a aparecer cuando arranca la misión de limpieza.
     if (result.missionId === 'limpia-la-cancha' && result.step === 'deal') {
@@ -1007,12 +1090,14 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (result.kind === 'finish') {
+      const bullets = [...(result.completion?.bullets ?? [])];
+      if (result.reward?.xp) bullets.push('+' + result.reward.xp + ' XP');
       events.emit('mission:complete', {
         title: result.title,
         objective: result.objective,
         reward: result.reward,
         body: result.completion?.body ?? null,
-        bullets: result.completion?.bullets ?? null,
+        bullets,
         drillUnlocked: this.mission.drillUnlocked,
       });
     }
@@ -1070,6 +1155,7 @@ export class GameScene extends Phaser.Scene {
       playerVariant: this.variant,
       player: { hp: this.combat.hp, maxHp: this.combat.maxHp },
       combat: this.combat.toSave(),
+      progression: this.progression.toSave(),
       world: this.save.world,
       story: this.save.story,
       inventory: this.inventory.toSave(),

@@ -6,8 +6,8 @@ las veces que haga falta y produce los mismos archivos.
 
 ## Resumen
 
-- **69 PNG de juego** generados en `public/assets/`.
-- **Peso total: 46.6 KB** (0.05 MB) / presupuesto 1.2 MB.
+- **73 PNG de juego** generados en `public/assets/`.
+- **Peso total: 47.4 KB** (0.05 MB) / presupuesto 1.2 MB.
 - Contact sheet de revision: `tools/asset_sheet.png` (no se carga en el juego).
 - Todos los PNG son RGBA, paleta cerrada y sin antialiasing (alfa 0/255).
 - Sin assets externos con copyright. La fuente Press Start 2P (OFL) se conserva.
@@ -54,6 +54,7 @@ las veces que haga falta y produce los mismos archivos.
 | Props | `props/cone.png` | 8x8 | 0.1 |
 | Props | `props/diablo-rojo.png` | 64x32 | 0.7 |
 | Props | `props/dog.png` | 16x16 | 0.2 |
+| Props | `props/escopeta.png` | 16x16 | 0.2 |
 | Props | `props/fence.png` | 16x16 | 0.2 |
 | Props | `props/hoop.png` | 16x24 | 0.2 |
 | Props | `props/lata.png` | 16x16 | 0.2 |
@@ -62,10 +63,13 @@ las veces que haga falta y produce los mismos archivos.
 | Props | `props/planter.png` | 16x16 | 0.3 |
 | Props | `props/power-pole.png` | 16x48 | 0.3 |
 | Props | `props/puddle.png` | 16x8 | 0.2 |
+| Props | `props/rifle.png` | 16x16 | 0.2 |
 | Props | `props/sign.png` | 16x24 | 0.3 |
 | Props | `props/stall.png` | 40x32 | 0.5 |
+| Props | `props/subfusil.png` | 16x16 | 0.2 |
 | Props | `props/taxi.png` | 32x24 | 0.4 |
 | Props | `props/trash.png` | 12x16 | 0.2 |
+| Props | `props/tubo.png` | 16x16 | 0.2 |
 | Props | `props/vendaje.png` | 16x16 | 0.2 |
 | Tiles | `tiles/tileset.png` | 256x16 | 1.3 |
 | Iconos UI | `ui/icon-back.png` | 16x16 | 0.2 |

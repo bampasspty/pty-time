@@ -43,7 +43,7 @@ const title = await page.evaluate(() => {
   const t = window.__PTY_GAME__.scene.getScene('Title');
   return { footer: t.footer.text, tagline: t.tagline.text, hasSave: t.hasSave };
 });
-check('producción sirve la v0.4', title.footer.includes('v0.4'), JSON.stringify(title));
+check('produccion sirve la v0.5', title.footer.includes('v0.5'), JSON.stringify(title));
 check('tagline de Calito', title.tagline.includes('Calito'), title.tagline);
 await page.screenshot({ path: `${OUT}/prod-title.png` });
 
@@ -83,11 +83,14 @@ const game = await page.evaluate(() => {
     alive: gs.enemies.filter((e) => !e.dead).length,
     hud: gs.registry.get('hud'),
     losWorks: gs.hasLineOfSight(60, 250, 190, 250) === false,
+    weaponPickups: gs.weaponPickups.length,
   };
 });
 check('4 matones en producción', game.enemies === 4 && game.alive === 4, JSON.stringify({ enemies: game.enemies }));
 check('HUD de combate en producción', game.hud?.hp === 100 && game.hud?.ammo === 8 && game.hud?.reserve === 30);
 check('línea de visión activa en producción', game.losWorks === true);
+check('armas repartidas en produccion', game.weaponPickups === 4, JSON.stringify({ weaponPickups: game.weaponPickups }));
+check('HUD con nivel y armas en produccion', game.hud?.level === 1 && game.hud?.owned === 2);
 
 const shot = await page.evaluate(() => {
   const gs = window.__PTY_GAME__.scene.getScene('Game');

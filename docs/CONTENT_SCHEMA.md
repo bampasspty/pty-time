@@ -6,7 +6,7 @@ Archivos a crear (solo esos):
 - `src/data/missions.js`
 - `src/data/dialogues.js`
 - `src/data/earthquake.js`
-- `src/data/weapons.js` (Slice A: armas)
+- `src/data/weapons.js` (Slice A y Fase 3: catálogo de 6 armas con munición propia)
 - `src/data/enemies.js` (Slice A: matones)
 - `src/data/zombies.js` (Slice B: infectados)
 - `src/data/items.js` (Slice B: inventario)

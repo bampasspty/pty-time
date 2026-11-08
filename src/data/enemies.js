@@ -20,6 +20,7 @@ export const ENEMIES = Object.freeze({
     attackCooldownMs: 900,
     alertNoise: 180,
     rewardCoins: 6,
+    xp: 14,
   }),
   'maton-duro': Object.freeze({
     id: 'maton-duro',
@@ -34,6 +35,7 @@ export const ENEMIES = Object.freeze({
     attackCooldownMs: 1150,
     alertNoise: 200,
     rewardCoins: 12,
+    xp: 30,
   }),
 });
 

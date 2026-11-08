@@ -65,6 +65,11 @@ export const PROPS = Object.freeze({
   vendaje: { image: 'prop-vendaje', width: 16, height: 16, solid: null, pickup: true },
   lata: { image: 'prop-lata', width: 16, height: 16, solid: null, pickup: true },
   caja: { image: 'prop-caja', width: 16, height: 16, solid: null, pickup: true },
+  // Armas que se recogen del mapa (Fase 3).
+  tubo: { image: 'prop-tubo', width: 16, height: 16, solid: null, pickup: true },
+  subfusil: { image: 'prop-subfusil', width: 16, height: 16, solid: null, pickup: true },
+  escopeta: { image: 'prop-escopeta', width: 16, height: 16, solid: null, pickup: true },
+  rifle: { image: 'prop-rifle', width: 16, height: 16, solid: null, pickup: true },
 });
 
 export const PLAYER_VARIANTS = Object.freeze([

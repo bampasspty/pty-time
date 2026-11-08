@@ -86,3 +86,10 @@ test('hoja del zombi 48x96 y objetos de suministro 16x16', () => {
     assert.deepEqual([size.width, size.height], [16, 16], prop);
   }
 });
+
+test('props de armas de la Fase 3 y pickups del mapa', () => {
+  for (const prop of ['tubo', 'subfusil', 'escopeta', 'rifle']) {
+    const size = pngSize(`props/${prop}.png`);
+    assert.deepEqual([size.width, size.height], [16, 16], prop);
+  }
+});

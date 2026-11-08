@@ -1,7 +1,7 @@
 # HANDOFF · PTY Time
 
-**Última actualización:** 2026-11-07 (v0.4.0 · Slice B y MVP del Documento Maestro cerrados)
-**Versión del repo:** 0.4.0 (`package.json`, `src/config.js` GAME_VERSION)
+**Última actualización:** 2026-11-08 (v0.5.0 · Fase 3 arrancada: arsenal y progresión)
+**Versión del repo:** 0.5.0 (`package.json`, `src/config.js` GAME_VERSION)
 **Demo publicada:** **https://pty-time.vercel.app** (auto-deploy desde `main`)
 **Repositorio:** **https://github.com/bampasspty/pty-time** (rama `main`)
 
@@ -17,7 +17,7 @@ cerrado en v0.4.0 (Slice A + Slice B).
 - Plan por slices: **Slice A** ✅ (combate y crimen) → **Slice B** ✅ (infección, zombi,
   inventario y transición) → siguiente: sistemas de acción y crimen del §5–§9.
 
-## Estado: v0.4.0 · MVP cerrado
+## Estado: v0.5.0 · MVP cerrado + Fase 3 (arsenal y progresión)
 
 ### Ya funciona
 
@@ -34,6 +34,10 @@ cerrado en v0.4.0 (Slice A + Slice B).
   +60 de yapa y +10 de reputación.
 - **Combate**: pistola «LA 9», puño, cargador/reserva/recarga, cambio de arma (Q/ARMA),
   proyectiles, fogonazos, impactos y apuntado libre.
+- **Arsenal (Fase 3)**: tubo, subfusil «LA MICRO», escopeta «LA RECORTADA» y rifle «EL 22»,
+  cada uno con munición propia; armas repartidas por el mapa para recoger.
+- **Progresión**: XP por enemigos y misiones, niveles con +10 de vida máxima y +5 % de daño,
+  HUD con nivel y experiencia.
 - **Vida y daño**: barra de vida, munición en HUD, modal de KO y reaparición.
 - **El colapso (Slice B)**: PTY Alerta ficticia con disclaimer, horda de 10 infectados
   (8 del mapa + 2 cerca de Calito), matones que huyen, **Capítulo III** (sobrevivir a 5 y
@@ -43,20 +47,19 @@ cerrado en v0.4.0 (Slice A + Slice B).
 - **Inventario básico**: vendajes, latas y cajas de balas; 12 espacios con apilado;
   panel MOCHILA con USAR VENDAJE / ABRIR CAJA; 5 suministros en el mapa.
 - Simulacro de terremoto desbloqueable con disclaimer y fuentes SINAPROC.
-- **Guardado v3** en `localStorage` (`pty-time-save-v1`): vida, munición, misiones,
-  mundo, historia e inventario; **migración automática v1/v2 → v3**.
-- 69 PNG de pixel art (46.6 KB) + generador determinista; efectos en memoria.
-- Pruebas: **73/73** unitarias, **20/20** E2E de regresión, **30/30** E2E de combate y
-  **10/10** comprobaciones contra la URL pública (0 errores de consola).
-- Build de producción OK y **desplegada**: 1,347.14 KB (375.06 KB gzip), 49–58 FPS en
-  producción y 56–57 FPS en gama baja emulada (CPU 4×, 844×390 táctil).
+- **Guardado v4** en `localStorage` (`pty-time-save-v1`): vida, munición, armas en
+  propiedad, progresión, misiones, mundo, historia e inventario; **migración automática
+  desde v1, v2 y v3**.
+- 73 PNG de pixel art (47.4 KB) + generador determinista; efectos en memoria.
+- Pruebas: **93/93** unitarias, **20/20** E2E de regresión, **35/35** E2E de combate y
+  **12/12** comprobaciones contra la URL pública (0 errores de consola).
+- Build de producción OK: 1,354.73 KB (377.38 KB gzip).
 
 ### Pendiente real
 
 1. **Probar en teléfono físico de gama baja** (QA en emulación Edge con GPU + CPU 4×).
-2. **Sistemas de acción del §5/§7**: más armas (subfusil, escopeta, rifle, improvisadas),
-   progresión con experiencia, fabricación, inventario con capacidad/peso, hambre y
-   resistencia.
+2. **Resto de la Fase 3**: fabricación (munición, botiquines, barricadas) y supervivencia
+   (hambre, resistencia, estado del refugio); inventario ampliado con peso/capacidad.
 3. **Crimen y consecuencias del §6**: reputación real, influencia, contactos, territorios,
    propiedades y el puente pre-apocalipsis → supervivencia.
 4. **Mundo de supervivencia del §8/§9**: refugios, supervivientes y vehículos jugables.
@@ -71,7 +74,7 @@ pnpm install
 pnpm dev          # http://localhost:5173
 pnpm build        # dist/
 pnpm preview      # http://localhost:4173
-pnpm test         # 73 pruebas
+pnpm test         # 93 pruebas
 ```
 
 En Windows de este entorno, Node y pnpm vienen del runtime de DSH; usar:
@@ -82,13 +85,13 @@ QA E2E (requiere Edge instalado y servidor de desarrollo en 5173):
 
 ```bash
 node tools/qa-final.mjs    # regresión: misión, simulacro, CONTINUAR, móvil
-node tools/qa-combat.mjs   # combate + Slice B: colapso, zombis, inventario, v3
+node tools/qa-combat.mjs   # combate, armas, progresion, colapso, inventario, v4
 node tools/qa-prod.mjs     # verifica la build pública de Vercel (sin servidor local)
 ```
 
 ## Publicación
 
-- Producción: **https://pty-time.vercel.app** (v0.4.0, auto-deploy desde `main`).
+- Producción: **https://pty-time.vercel.app** (v0.5.0, auto-deploy desde `main`).
 - Proyecto: `gestion14/pty-time` · framework Vite · build `pnpm build` · salida `dist`.
 - **GitHub conectado a Vercel**: cada push a `main` despliega automáticamente.
 - Para desplegar manualmente: `pnpm deploy:vercel`.
@@ -105,10 +108,11 @@ node tools/qa-prod.mjs     # verifica la build pública de Vercel (sin servidor 
 - `src/scenes/UIScene.js` — HUD, historia, mochila, diálogos, modales y táctil.
 - `src/scenes/CharacterScene.js` — apariencia de Calito (camisa cosmética).
 - `src/systems/MissionSystem.js` — registro de misiones puro (3 misiones).
-- `src/systems/CombatSystem.js` — vida, cargador, cadencia, recarga, derrotas (puro).
+- `src/systems/CombatSystem.js` — vida, armas en propiedad, cargador, cadencia y recarga.
+- `src/systems/ProgressionSystem.js` — experiencia, niveles y bonificaciones (puro).
 - `src/systems/EnemyAI.js` — IA de matones y zombis (puro, con línea de visión).
 - `src/systems/InventorySystem.js` — inventario con pilas y capacidad (puro).
-- `src/systems/SaveSystem.js` — guardado v3 + migración desde v1/v2.
+- `src/systems/SaveSystem.js` — guardado v4 + migración desde v1/v2/v3.
 - `src/systems/QuakeDrill.js` — fases del simulacro.
 - `src/entities/` — Player, NPC, Enemy, Bullet.
 - `src/world/sanMiguelito.js` — layout del mapa (enemigos, zombis y suministros).
@@ -129,7 +133,12 @@ node tools/qa-prod.mjs     # verifica la build pública de Vercel (sin servidor 
 - Calito es el protagonista canónico y la apariencia es cosmética (camisa).
 - **4 filas visuales** de animación con dirección dominante, movimiento diagonal y
   apuntado libre; redibujar diagonales queda como mejora opcional.
-- Balance actual: pistola 14 de daño, matón 30 HP, matón jefe 60 HP, infectado 40 HP,
-  reserva inicial 30 balas, 2 vendajes + 1 lata de inicio.
+- Balance actual: pistola 14 de daño, subfusil 9, escopeta 8×5 perdigones, rifle 26,
+  tubo 17, matón 30 HP, matón jefe 60 HP, infectado 40 HP, reserva inicial 30 balas,
+  2 vendajes + 1 lata de inicio.
+- **Arsenal por progresión:** el jugador empieza con puño y pistola; las otras 4 armas se
+  recogen en el mapa (tubo, subfusil, escopeta, rifle) y cada una usa su propia munición.
+- **Progresión:** XP por enemigo (matón 14, jefe 30, infectado 12) y por misión (40/80/120);
+  cada nivel da +10 de vida máxima, +5 % de daño y el HUD muestra nivel y XP.
 - Los zombis se comportan distinto a los matones (sin línea de visión, velocidad variable);
   la horda y los suministros aparecen al caer el colapso.

@@ -95,7 +95,7 @@ const boot = await inGame((gs) => ({
   hud: gs.registry.get('hud'),
 }));
 check('se crean los 4 matones del mapa', boot.enemies === 4 && boot.alive === 4, JSON.stringify(boot));
-check('el HUD trae vida y munición', boot.hud?.hp === 100 && boot.hud?.ammo === 8 && boot.hud?.reserve === 30);
+check('el HUD trae vida, municion, nivel y armas', boot.hud?.hp === 100 && boot.hud?.ammo === 8 && boot.hud?.reserve === 30 && boot.hud?.level === 1 && boot.hud?.owned === 2);
 check('la misión activa es el mandado', boot.mission === 'el-mandado');
 
 await page.screenshot({ path: `${OUT}/combat-map.png` });
@@ -147,7 +147,43 @@ const los = await inGame((gs) => ({
   blocked: gs.hasLineOfSight(60, 250, 190, 250),
   clear: gs.hasLineOfSight(400, 350, 500, 350),
 }));
-check('la línea de visión detecta muros', los.blocked === false && los.clear === true, JSON.stringify(los));
+check('la linea de vision detecta muros', los.blocked === false && los.clear === true, JSON.stringify(los));
+
+// ------------------------------------------- Fase 3: armas y progresion
+const arsenal = await inGame((gs) => {
+  const before = gs.combat.owned.length;
+  const pickups = gs.weaponPickups.length;
+  const subfusil = gs.weaponPickups.find((p) => p.id === 'subfusil');
+  if (subfusil) gs.pickupWeapon(subfusil);
+  return {
+    before,
+    pickups,
+    after: gs.combat.owned.length,
+    armed: gs.combat.owned.includes('subfusil'),
+    weapon: gs.combat.weaponId,
+  };
+});
+check('hay 4 armas repartidas en el mapa', arsenal.pickups === 4, JSON.stringify(arsenal));
+check('recoger el subfusil lo agrega al arsenal', arsenal.armed === true && arsenal.after === arsenal.before + 1, JSON.stringify(arsenal));
+
+const cycle = await inGame((gs) => {
+  const names = [];
+  for (let i = 0; i < 3; i++) {
+    gs.toggleWeapon();
+    names.push(gs.combat.weaponId);
+  }
+  return { names, owned: gs.combat.owned.length, hudOwned: gs.registry.get('hud')?.owned };
+});
+check('cambiar de arma cicla el arsenal', new Set(cycle.names).size >= 2 && cycle.owned === 3, JSON.stringify(cycle));
+
+const shotgun = await inGame((gs) => {
+  gs.combat.addWeapon('escopeta');
+  gs.combat.equip('escopeta');
+  gs.emitHud();
+  const shot = gs.combat.tryFire(gs.time.now + 5000);
+  return { fired: shot.fired, pellets: shot.pellets, ammo: gs.combat.loaded };
+});
+check('la recortada dispara perdigones', shotgun.fired === true && shotgun.pellets === 5, JSON.stringify(shotgun));
 
 // --------------------------------------------------- misión criminal completa
 const crime = await inGame((gs) => {
@@ -234,8 +270,8 @@ check('la vida llega a cero y sale el modal de KO', down.ko === true && down.hp 
 await page.screenshot({ path: `${OUT}/combat-ko.png` });
 
 await closeModal();
-const respawn = await inGame((gs) => ({ ko: gs.ko, hp: gs.combat.hp }));
-check('reaparece con vida completa', respawn.ko === false && respawn.hp === 100, JSON.stringify(respawn));
+const respawn = await inGame((gs) => ({ ko: gs.ko, hp: gs.combat.hp, maxHp: gs.combat.maxHp }));
+check('reaparece con vida completa', respawn.ko === false && respawn.hp === respawn.maxHp, JSON.stringify(respawn));
 
 // -------------------------------------- Slice B: horda, refugio e inventario
 const horde = await inGame((gs) => {
@@ -314,19 +350,38 @@ const saved = await inGame((gs) => {
     inventory: raw.inventory?.slots,
     coins: raw.wallet?.coins,
     defeats: raw.combat?.defeats,
+    owned: raw.combat?.owned,
+    progression: raw.progression,
+    weaponsTaken: raw.world?.weaponsTaken,
   };
 });
 check(
-  'guardado v3 con colapso, historia e inventario',
-  saved.version === 3 &&
+  'guardado v4 con colapso, armas, progresion e inventario',
+  saved.version === 4 &&
     saved.mandado === 'done' &&
     saved.crime === 'done' &&
     saved.collapse === 'done' &&
     saved.phase === 'apocalipsis' &&
     saved.story?.collapseSeen === true &&
     Array.isArray(saved.inventory) &&
+    Array.isArray(saved.owned) &&
+    saved.owned.includes('subfusil') &&
+    saved.progression?.level >= 2 &&
+    Array.isArray(saved.weaponsTaken) &&
     saved.coins === 85,
   JSON.stringify(saved),
+);
+
+const progression = await inGame((gs) => ({
+  level: gs.progression.level,
+  xp: gs.progression.xp,
+  maxHp: gs.combat.maxHp,
+  hudLevel: gs.registry.get('hud')?.level,
+}));
+check(
+  'la experiencia sube de nivel y aumenta la vida maxima',
+  progression.level >= 2 && progression.maxHp === 100 + (progression.level - 1) * 10 && progression.hudLevel === progression.level,
+  JSON.stringify(progression),
 );
 
 // --------------------------------------------------------------- móvil táctil

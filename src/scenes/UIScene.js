@@ -69,7 +69,8 @@ export class UIScene extends Phaser.Scene {
       .setOrigin(0, 0)
       .setStrokeStyle(1, 0x46557a, 1);
     this.hpBarFill = this.add.rectangle(0, 0, 96, 9, COLORS.red, 1).setOrigin(0, 0);
-    this.combatText = this.add.text(0, 0, 'LA 9 8/24', textStyle(8, CSS.soft)).setOrigin(0, 0);
+    this.combatText = this.add.text(0, 0, 'LA 9 8/30', textStyle(8, CSS.soft)).setOrigin(0, 0);
+    this.xpText = this.add.text(0, 0, 'NIVEL 1 · 0/80 XP', textStyle(8, CSS.yellow)).setOrigin(0, 0);
 
     this.hudContainer.add([
       this.hudBg,
@@ -79,6 +80,7 @@ export class UIScene extends Phaser.Scene {
       this.hpBarBg,
       this.hpBarFill,
       this.combatText,
+      this.xpText,
     ]);
   }
 
@@ -386,6 +388,10 @@ export class UIScene extends Phaser.Scene {
       : `${this.hudState?.ammo ?? 0}/${this.hudState?.reserve ?? 0}`;
     const label = this.hudState?.reloading ? 'RECARGANDO…' : ammo;
     this.combatText.setText(`${this.hudState?.weapon ?? 'LA 9'} · ${label}`);
+    const level = this.hudState?.level ?? 1;
+    const xp = this.hudState?.xp ?? 0;
+    const xpNext = this.hudState?.xpNext ?? 80;
+    this.xpText.setText(`NIVEL ${level} · ${xp}/${xpNext} XP`);
   }
 
   layoutHud() {
@@ -403,13 +409,15 @@ export class UIScene extends Phaser.Scene {
     const combatY = 8 + this.hudLabel.height + 6 + this.hudObjective.height + 8;
 
     this.combatText.setStyle(textStyle(clamp(Math.round(H / 60), 8, 11), CSS.soft));
-    const w = Math.min(380, Math.max(200, Math.max(this.hudObjective.width + 28, this.combatText.width + 28)));
+    const w = Math.min(380, Math.max(200, Math.max(this.hudObjective.width + 28, this.combatText.width + 28, this.xpText.width + 28)));
     const barW = Math.max(64, Math.min(96, w - 24));
     this.hpBarBg.setSize(barW, 9).setPosition(12, combatY);
     this.hpBarFill.setPosition(12, combatY);
     this.combatText.setPosition(12, combatY + 12);
+    this.xpText.setStyle(textStyle(clamp(Math.round(H / 62), 7, 10), CSS.yellow));
+    this.xpText.setPosition(12, combatY + 12 + this.combatText.height + 2);
 
-    const h = combatY + 12 + this.combatText.height + 8;
+    const h = combatY + 12 + this.combatText.height + 2 + this.xpText.height + 8;
     this.hudBg.setSize(w, h);
     this.hudAccent.setSize(3, h);
     this.hudContainer.setPosition(8, 8);

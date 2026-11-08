@@ -23,6 +23,7 @@ export const ZOMBIES = Object.freeze({
     attackCooldownMs: 1300,
     alertNoise: 320,
     rewardCoins: 2,
+    xp: 12,
   }),
 });
 

@@ -1,35 +1,34 @@
 # BACKLOG · PTY TIME
 
-**Estado:** v0.4.0 · **MVP del Documento Maestro cerrado** (Slice A + Slice B)
+**Estado:** v0.5.0 · MVP cerrado + **Fase 3 arrancada** (armas y progresión)
 **Referencia:** `docs/MASTER_DOC.md` (v1.2) y `docs/V1.2_AUDIT.md`
-**Última revisión:** 2026-11-07
+**Última revisión:** 2026-11-08
 
-El §18 del Documento Maestro ya está completo. Lo que sigue es la visión del documento
-más allá del MVP: sistemas de acción, crimen, supervivencia, mapa y pulido. Lo hecho está
-en `HANDOFF.md` y `CHANGELOG.md`; aquí solo huecos.
+El §18 del Documento Maestro ya está completo y la Fase 3 tiene su primer bloque. Lo que
+sigue es el resto de sistemas de acción, crimen, supervivencia, mapa y pulido. Lo hecho
+está en `HANDOFF.md` y `CHANGELOG.md`; aquí solo huecos.
 
 ---
 
 ## 0. Resumen ejecutivo
 
-- **MVP (§18): ✅ cerrado.** Pantalla, intro narrativa, Calito, mapa, NPC, combate,
-  armas iniciales, enemigos, misión, infección, zombi, transición al apocalipsis,
-  inventario y guardado v3.
-- **Hoja de ruta (§19):** Fase 1 ✅ · Fase 2 ✅ · Fase 3 parcial (combate y enemigos ✅;
-  armas, progresión, inventario ampliado y fabricación ❌) · Fases 4–6 sin empezar ·
+- **MVP (§18): ✅ cerrado** en v0.4.0.
+- **Fase 3 (parcial, v0.5.0):** armas completas ✅ y progresión con XP ✅. Faltan
+  fabricación y supervivencia (hambre/resistencia).
+- **Hoja de ruta (§19):** Fase 1 ✅ · Fase 2 ✅ · Fase 3 parcial · Fases 4–6 sin empezar ·
   Fase 7 parcial (desplegado y QA ✅; audio, atlas, CI y teléfono físico ❌).
-- **Siguiente bloque recomendado:** cerrar la Fase 3 (armas, progresión, fabricación,
-  supervivencia básica) antes de entrar a la Fase 4 (crimen y reputación).
+- **Siguiente bloque recomendado:** completar la Fase 3 (fabricación + hambre/resistencia)
+  antes de entrar a la Fase 4 (crimen y reputación).
 
 ## 1. Sistemas de acción pendientes (§5, §7)
 
 | Falta | Nota |
 |---|---|
-| Armas completas (§5.2) | Subfusil, escopeta, rifle, improvisadas. Hoy pistola y puño. |
-| Progresión (§5.5) | Experiencia y mejoras de salud/resistencia/precisión/combate/capacidad/velocidad de fabricación/supervivencia. |
-| Fabricación (§5.4) | Munición, botiquines, herramientas, barricadas, mejoras de refugio. |
-| Inventario ampliado (§5.3) | Categorías completas, peso/capacidad real, armas y materiales. Hoy solo consumibles y munición. |
-| Supervivencia (§7) | Hambre, resistencia y estado del refugio. Salud y munición ya están. |
+| ~~Armas completas~~ | ✅ **v0.5.0**: pistola, puño, tubo, subfusil, escopeta y rifle con munición propia y pickups en el mapa. |
+| ~~Progresión~~ | ✅ **v0.5.0**: experiencia, niveles, +10 vida y +5 % daño por nivel, HUD con nivel y XP. |
+| Fabricación (§5.4) | Munición, botiquines, herramientas, barricadas y mejoras de refugio. **Siguiente.** |
+| Inventario ampliado (§5.3) | Categorías completas, peso/capacidad real, armas y materiales. Hoy consumibles y munición. |
+| Supervivencia (§7) | Hambre, resistencia y estado del refugio. **Siguiente.** |
 | Zombis (§7.1) | Faltan rápido, resistente, ataque pesado y especial. |
 | IA ampliada (§7.2) | Obstáculos, cambio de objetivo, sonidos ambientales; base ya implementada. |
 

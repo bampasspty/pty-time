@@ -57,7 +57,7 @@ export const MISSIONS = Object.freeze({
         from: 'report-nena',
         to: 'done',
         toast: '¡Misión completada!',
-        reward: Object.freeze({ coins: 25, unlock: 'drill' }),
+        reward: Object.freeze({ coins: 25, xp: 40, unlock: 'drill' }),
         kind: 'finish',
       }),
     }),
@@ -98,7 +98,7 @@ export const MISSIONS = Object.freeze({
         from: 'report',
         to: 'done',
         toast: '¡Misión completada!',
-        reward: Object.freeze({ coins: 60, reputation: 10 }),
+        reward: Object.freeze({ coins: 60, reputation: 10, xp: 80 }),
         kind: 'finish',
       }),
     }),
@@ -138,6 +138,7 @@ export const MISSIONS = Object.freeze({
         to: 'done',
         toast: 'Capítulo III completado',
         kind: 'finish',
+        reward: Object.freeze({ xp: 120 }),
         completion: Object.freeze({
           body: 'Llegaste a la fonda con Doña Nena. El barrio cambió, pero vos seguís vivo.',
           bullets: Object.freeze([

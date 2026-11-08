@@ -1,10 +1,18 @@
-// Estado de combate del jugador (PURA, sin Phaser): vida, arma equipada,
+// Estado de combate del jugador (PURA, sin Phaser): vida, armas en propiedad,
 // cargador, reserva, recarga, cadencia y enemigos derrotados.
 //
 // La escena sólo pregunta "¿puedo disparar?" y ejecuta el efecto visual; toda
 // la aritmética (munición, daño, tiempos) vive aquí y se prueba con node:test.
 
-import { DEFAULT_WEAPON, STARTING_AMMO, getWeapon } from '../data/weapons.js';
+import {
+  AMMO_TYPES,
+  DEFAULT_WEAPON,
+  STARTING_AMMO,
+  STARTING_WEAPONS,
+  WEAPONS,
+  getWeapon,
+  isWeaponId,
+} from '../data/weapons.js';
 
 const DEFAULT_MAX_HP = 100;
 const AMMO_TYPE = /^[a-z][a-z0-9-]{1,15}$/i;
@@ -24,22 +32,56 @@ function sanitizeAmmo(raw, fallback) {
   return out;
 }
 
+function defaultMagazines() {
+  const mags = {};
+  for (const weapon of Object.values(WEAPONS)) {
+    if (weapon.magazine > 0) mags[weapon.id] = weapon.magazine;
+  }
+  return mags;
+}
+
+function sanitizeOwned(raw) {
+  const owned = [];
+  const source = Array.isArray(raw) ? raw : [];
+  for (const id of source) {
+    if (isWeaponId(id) && !owned.includes(id)) owned.push(id);
+  }
+  for (const id of STARTING_WEAPONS) {
+    if (!owned.includes(id)) owned.push(id);
+  }
+  return owned;
+}
+
 export class CombatSystem {
   constructor(save = {}) {
     const src = save?.combat && typeof save.combat === 'object' ? save.combat : save ?? {};
     const player = save?.player && typeof save.player === 'object' ? save.player : {};
 
-    const weapon = getWeapon(src.weaponId);
-    this.weaponId = weapon.id;
+    this.owned = sanitizeOwned(src.owned);
+    const wanted = isWeaponId(src.weaponId) && this.owned.includes(src.weaponId)
+      ? src.weaponId
+      : this.owned.includes(DEFAULT_WEAPON)
+        ? DEFAULT_WEAPON
+        : this.owned[0];
+    this.weaponId = wanted;
+
     this.maxHp = Math.max(1, asInt(src.maxHp ?? player.maxHp, DEFAULT_MAX_HP));
     this.hp = Math.min(this.maxHp, asInt(src.hp ?? player.hp, this.maxHp)) || this.maxHp;
 
-    const defaultMag = weapon.magazine > 0 ? { [weapon.id]: weapon.magazine } : {};
-    const defaultReserve = weapon.ammoType ? { [weapon.ammoType]: STARTING_AMMO[weapon.ammoType] ?? 0 } : {};
-    this.magazines = sanitizeAmmo(src.magazines, defaultMag);
-    this.reserves = sanitizeAmmo(src.reserves, defaultReserve);
-    if (weapon.magazine > 0) {
-      this.magazines[weapon.id] = Math.min(weapon.magazine, asInt(this.magazines[weapon.id], weapon.magazine));
+    this.magazines = sanitizeAmmo(src.magazines, defaultMagazines());
+    for (const weapon of Object.values(WEAPONS)) {
+      if (weapon.magazine <= 0) continue;
+      this.magazines[weapon.id] = Math.min(
+        weapon.magazine,
+        asInt(this.magazines[weapon.id], weapon.magazine),
+      );
+    }
+
+    const reserveDefaults = {};
+    for (const type of AMMO_TYPES) reserveDefaults[type] = asInt(STARTING_AMMO[type], 0);
+    this.reserves = sanitizeAmmo(src.reserves, reserveDefaults);
+    for (const type of AMMO_TYPES) {
+      if (!Number.isFinite(this.reserves[type])) this.reserves[type] = 0;
     }
 
     this.cooldownUntil = 0;
@@ -69,6 +111,10 @@ export class CombatSystem {
     return this.hp <= 0;
   }
 
+  owns(weaponId) {
+    return this.owned.includes(weaponId);
+  }
+
   isReloadingAt(now) {
     return this.reloadingUntil > now;
   }
@@ -78,12 +124,45 @@ export class CombatSystem {
   }
 
   equip(weaponId) {
-    if (!getWeapon(weaponId) || getWeapon(weaponId).id !== weaponId) return false;
+    if (!isWeaponId(weaponId) || !this.owns(weaponId)) return false;
     if (weaponId === this.weaponId) return false;
     this.weaponId = weaponId;
     this.cooldownUntil = 0;
     this.reloadingUntil = 0;
     return true;
+  }
+
+  // Consigue un arma nueva. Devuelve true sólo la primera vez.
+  addWeapon(weaponId) {
+    if (!isWeaponId(weaponId) || this.owns(weaponId)) return false;
+    this.owned.push(weaponId);
+    const weapon = getWeapon(weaponId);
+    if (weapon.magazine > 0 && (this.magazines[weapon.id] ?? 0) <= 0) {
+      this.magazines[weapon.id] = weapon.magazine;
+    }
+    if (weapon.ammoType && (this.reserves[weapon.ammoType] ?? 0) <= 0 && weapon.starterAmmo > 0) {
+      this.reserves[weapon.ammoType] = weapon.starterAmmo;
+    }
+    return true;
+  }
+
+  // Cicla entre las armas en propiedad.
+  cycleWeapon(step = 1) {
+    if (this.owned.length <= 1) return false;
+    const index = Math.max(0, this.owned.indexOf(this.weaponId));
+    const next = (index + (step >= 0 ? 1 : -1) + this.owned.length) % this.owned.length;
+    return this.equip(this.owned[next]);
+  }
+
+  // Ajusta la vida máxima (bonificaciones de nivel) y cura la diferencia.
+  setMaxHp(target) {
+    const value = Math.max(1, asInt(target, this.maxHp));
+    if (value === this.maxHp) return this.hp;
+    const delta = value - this.maxHp;
+    this.maxHp = value;
+    const healed = Math.max(0, Math.min(delta, value - this.hp));
+    this.hp = Math.min(value, Math.max(1, this.hp + healed));
+    return this.hp;
   }
 
   canFire(now) {
@@ -94,17 +173,22 @@ export class CombatSystem {
     return { ok: true, reason: null };
   }
 
-  // Devuelve { fired, reason, damage }. Si dispara, descuenta munición y fija
-  // el próximo instante en que se puede volver a disparar.
+  // Devuelve { fired, reason, damage, pellets }. Si dispara, descuenta munición
+  // y fija el próximo instante en que se puede volver a disparar.
   tryFire(now) {
     const check = this.canFire(now);
-    if (!check.ok) return { fired: false, reason: check.reason, damage: 0 };
+    if (!check.ok) return { fired: false, reason: check.reason, damage: 0, pellets: 1 };
 
     this.cooldownUntil = now + this.weapon.cooldownMs;
     if (this.weapon.magazine > 0) {
       this.magazines[this.weaponId] = Math.max(0, this.loaded - 1);
     }
-    return { fired: true, reason: null, damage: this.weapon.damage };
+    return {
+      fired: true,
+      reason: null,
+      damage: this.weapon.damage,
+      pellets: this.weapon.pellets ?? 1,
+    };
   }
 
   canReload() {
@@ -182,6 +266,7 @@ export class CombatSystem {
       maxHp: this.maxHp,
       hp: this.hp,
       weaponId: this.weaponId,
+      owned: [...this.owned],
       magazines: { ...this.magazines },
       reserves: { ...this.reserves },
       defeats: this.defeats,

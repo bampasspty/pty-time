@@ -32,7 +32,7 @@ test('el guardado v3 trae mundo, historia e inventario', () => {
   assert.ok(save.inventory.slots.length > 0);
 });
 
-test('ida y vuelta del guardado v3', () => {
+test('ida y vuelta del guardado v4', () => {
   const storage = memoryStorage();
   const save = defaultSave();
   save.playerVariant = 'f-red';
@@ -42,8 +42,13 @@ test('ida y vuelta del guardado v3', () => {
   save.player.hp = 76;
   save.combat.magazines.pistola = 5;
   save.combat.defeats = 2;
+  save.combat.owned = ['puno', 'pistola', 'escopeta'];
+  save.combat.reserves.escopeta = 9;
+  save.progression.level = 3;
+  save.progression.xp = 25;
   save.world.phase = 'colapso';
   save.world.suppliesTaken = ['vendaje-0'];
+  save.world.weaponsTaken = ['escopeta-2'];
   save.story.introSeen = true;
   save.story.collapseSeen = true;
   save.missions['el-colapso'].step = 'survive';
@@ -59,8 +64,13 @@ test('ida y vuelta del guardado v3', () => {
   assert.equal(loaded.player.hp, 76);
   assert.equal(loaded.combat.magazines.pistola, 5);
   assert.equal(loaded.combat.defeats, 2);
+  assert.deepEqual(loaded.combat.owned, ['puno', 'pistola', 'escopeta']);
+  assert.equal(loaded.combat.reserves.escopeta, 9);
+  assert.equal(loaded.progression.level, 3);
+  assert.equal(loaded.progression.xp, 25);
   assert.equal(loaded.world.phase, 'colapso');
   assert.deepEqual(loaded.world.suppliesTaken, ['vendaje-0']);
+  assert.deepEqual(loaded.world.weaponsTaken, ['escopeta-2']);
   assert.equal(loaded.story.introSeen, true);
   assert.equal(loaded.story.collapseSeen, true);
   assert.deepEqual(loaded.inventory.slots, [{ id: 'vendaje', qty: 1 }, { id: 'balas9', qty: 2 }]);
@@ -111,11 +121,45 @@ test('migra un guardado v2 (Slice A) y le agrega el Slice B', () => {
     },
   };
   const loaded = sanitizeSave(v2);
-  // El guardado deja 'locked'; MissionSystem la abre al construirse.\n  assert.equal(loaded.missions['el-colapso'].step, 'locked');
+  // El guardado deja 'locked'; MissionSystem la abre al construirse.
+  assert.equal(loaded.missions['el-colapso'].step, 'locked');
   assert.equal(loaded.world.phase, 'barrio');
   assert.equal(loaded.story.collapseSeen, false);
   assert.ok(loaded.inventory.slots.length > 0);
   assert.equal(loaded.wallet.coins, 85);
+});
+
+test('migra un guardado v3 (Slice B) y le agrega la Fase 3', () => {
+  const v3 = {
+    version: 3,
+    playerVariant: 'm-blue',
+    started: true,
+    player: { hp: 90, maxHp: 100 },
+    combat: {
+      weaponId: 'pistola',
+      magazines: { pistola: 6 },
+      reserves: { pistola: 12, subfusil: 0, escopeta: 0, rifle: 0 },
+      defeats: 7,
+    },
+    wallet: { coins: 85 },
+    reputation: { barrio: 10 },
+    missions: {
+      'el-mandado': { step: 'done', completed: true },
+      'limpia-la-cancha': { step: 'done', completed: true },
+      'el-colapso': { step: 'survive', completed: false },
+    },
+    world: { phase: 'colapso', suppliesTaken: [] },
+    story: { introSeen: true, collapseSeen: true },
+    inventory: { slots: [{ id: 'vendaje', qty: 2 }] },
+  };
+  const loaded = sanitizeSave(v3);
+  assert.equal(loaded.version, SAVE_VERSION);
+  assert.deepEqual(loaded.combat.owned, ['puno', 'pistola']);
+  assert.equal(loaded.combat.magazines.pistola, 6);
+  assert.equal(loaded.combat.reserves.pistola, 12);
+  assert.equal(loaded.progression.level, 1);
+  assert.deepEqual(loaded.world.weaponsTaken, []);
+  assert.equal(loaded.world.phase, 'colapso');
 });
 
 test('el mundo se sincroniza con el estado de la misión del colapso', () => {
@@ -171,8 +215,11 @@ test('sanitiza valores inválidos', () => {
   assert.equal(save.player.hp, DEFAULT_SAVE.player.maxHp);
   assert.equal(save.player.maxHp, DEFAULT_SAVE.player.maxHp);
   assert.equal(save.combat.weaponId, DEFAULT_SAVE.combat.weaponId);
-  assert.equal(save.combat.magazines.pistola, 0);
+  assert.deepEqual(save.combat.owned, ['puno', 'pistola']);
+  assert.equal(save.combat.magazines.pistola, 8);
   assert.equal(save.combat.defeats, 0);
+  assert.equal(save.progression.level, 1);
+  assert.equal(save.progression.xp, 0);
   assert.equal(save.wallet.coins, 0);
   assert.equal(save.reputation.barrio, 0);
   assert.equal(save.world.phase, 'barrio');

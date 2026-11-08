@@ -2568,6 +2568,74 @@ def draw_caja():
     return outline(im)
 
 
+def _diag(im, x0, y0, x1, y1, color):
+    """Linea diagonal de pixeles (Bresenham simple)."""
+    dx = abs(x1 - x0)
+    dy = -abs(y1 - y0)
+    sx = 1 if x0 < x1 else -1
+    sy = 1 if y0 < y1 else -1
+    err = dx + dy
+    x, y = x0, y0
+    while True:
+        put(im, x, y, color)
+        if x == x1 and y == y1:
+            break
+        e2 = 2 * err
+        if e2 >= dy:
+            err += dy
+            x += sx
+        if e2 <= dx:
+            err += dx
+            y += sy
+
+
+def draw_tubo():
+    """Arma improvisada: tubo de metal."""
+    im = new(16, 16)
+    _diag(im, 3, 12, 12, 3, ZINC_L)
+    _diag(im, 3, 13, 12, 4, ZINC)
+    _diag(im, 4, 12, 13, 3, ZINC_DARK)
+    rect(im, 11, 2, 3, 3, ZINC)
+    rect(im, 2, 11, 3, 3, ZINC_RUST)
+    return outline(im)
+
+
+def draw_subfusil():
+    im = new(16, 16)
+    rect(im, 3, 5, 11, 4, PANTS_D)
+    hline(im, 3, 5, 12, ZINC_DARK)
+    rect(im, 12, 4, 2, 2, INK)
+    rect(im, 1, 6, 3, 2, INK)
+    rect(im, 6, 9, 2, 4, PANTS_B)
+    rect(im, 9, 9, 3, 3, SHADOW)
+    put(im, 4, 7, TAXI)
+    put(im, 10, 6, TAXI)
+    return outline(im)
+
+
+def draw_escopeta():
+    im = new(16, 16)
+    rect(im, 1, 7, 5, 4, ZINC_RUST)
+    rect(im, 6, 6, 9, 3, ZINC_DARK)
+    hline(im, 6, 6, 9, ZINC_L)
+    hline(im, 6, 8, 9, ZINC)
+    rect(im, 6, 9, 4, 2, ZINC_RUST)
+    put(im, 2, 8, TAXI)
+    return outline(im)
+
+
+def draw_rifle():
+    im = new(16, 16)
+    rect(im, 1, 8, 6, 3, HAIR_BR)
+    rect(im, 6, 7, 9, 2, ZINC_DARK)
+    hline(im, 6, 7, 9, ZINC_L)
+    rect(im, 9, 4, 4, 2, INK)
+    rect(im, 8, 6, 2, 2, PANTS_B)
+    rect(im, 5, 9, 2, 3, PANTS_D)
+    put(im, 2, 9, TAXI)
+    return outline(im)
+
+
 PROP_DRAWERS = [
     ("palm", draw_palm, (32, 48)),
     ("mango-tree", draw_mango_tree, (32, 40)),
@@ -2591,6 +2659,10 @@ PROP_DRAWERS = [
     ("vendaje", draw_vendaje, (16, 16)),
     ("lata", draw_lata, (16, 16)),
     ("caja", draw_caja, (16, 16)),
+    ("tubo", draw_tubo, (16, 16)),
+    ("subfusil", draw_subfusil, (16, 16)),
+    ("escopeta", draw_escopeta, (16, 16)),
+    ("rifle", draw_rifle, (16, 16)),
 ]
 BUILDING_SIZES = {
     "house-a": (80, 64), "house-b": (64, 64), "house-c": (96, 80),

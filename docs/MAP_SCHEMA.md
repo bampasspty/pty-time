@@ -50,6 +50,10 @@ export const SAN_MIGUELITO = {
     // id = objeto de src/data/items.js (vendaje, lata, caja)
     { id: 'vendaje', x: 140, y: 322 },
   ],
+  weaponPickups: [
+    // id = arma de src/data/weapons.js (tubo, subfusil, escopeta, rifle)
+    { id: 'tubo', x: 528, y: 448 },
+  ],
   zones: [
     { id: 'cancha', name: 'Cancha de San Isidro', type: 'open', x: 720, y: 100, w: 240, h: 180 },
   ],
@@ -104,6 +108,10 @@ export const SAN_MIGUELITO = {
     infectados al caer el colapso (se suman 2 cerca del jugador) y `supplies` los puntos
     de recogida. Ambos usan ids válidos de `src/data/zombies.js` y `src/data/items.js`;
     deben estar en zonas transitables y repartidos por el mapa.
+11. **Armas recogibles (Fase 3)**: `weaponPickups` reparte armas por el mapa con ids de
+    `src/data/weapons.js`. Al recogerlas se suman al arsenal con cargador y munición
+    inicial; deben quedar en zonas transitables y no junto a enemigos. Una vez recogidas
+    se guardan en `world.weaponsTaken` para no reaparecer.
 
 ## Validación
 
