@@ -120,6 +120,14 @@ check('disparar descuenta munición', shot.fired === true && afterShot.ammo === 
 check('la bala golpea al matón', afterShot.hit === true);
 check('el HUD refleja la munición', afterShot.hudAmmo === 7);
 
+// Sin auto-disparo: mantener la tecla no repite el tiro.
+const fireBefore = await inGame((gs) => ({ total: gs.combat.loaded + gs.combat.reserve }));
+await page.keyboard.down('KeyJ');
+await page.waitForTimeout(650);
+await page.keyboard.up('KeyJ');
+const fireAfter = await inGame((gs) => ({ total: gs.combat.loaded + gs.combat.reserve }));
+check('sin auto-disparo al mantener la tecla', fireAfter.total === fireBefore.total - 1, JSON.stringify({ before: fireBefore.total, after: fireAfter.total }));
+
 // recarga manual
 const reload = await inGame((gs) => {
   gs.reloadWeapon();

@@ -1,5 +1,13 @@
 # CHANGELOG · PTY Time
 
+## [1.0.1] — 2026-11-08
+
+### Corregido
+
+- **Se quitó el auto-disparo**: mantener pulsado el ratón o la tecla de disparo ya no
+  repite tiros. Ahora cada clic/pulsación (y cada toque en FUEGO) dispara una sola vez;
+  la cadencia del arma solo limita la velocidad entre disparos.
+
 ## [1.0.0] — 2026-11-08 · Primera versión pública (Fases 3 y 4 cerradas)
 
 Release para el público: se completan la fabricación y la supervivencia de la Fase 3 y el

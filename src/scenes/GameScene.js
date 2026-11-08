@@ -73,6 +73,7 @@ export class GameScene extends Phaser.Scene {
     this.invulnUntil = 0;
     this.reloadKeyDown = false;
     this.weaponKeyDown = false;
+    this.fireKeyDown = false;
     this.aimAngle = 0;
     this.aimWorld = { x: 0, y: 0 };
     this.dialogueNpc = null;
@@ -244,9 +245,15 @@ export class GameScene extends Phaser.Scene {
       this.reloadKeyDown = false;
     }
 
-    const pointer = this.input.activePointer;
-    const mouseHeld = pointer.isDown && (pointer.pointerType === 'mouse' || pointer.pointerType === undefined);
-    if (this.keys.fire.isDown || mouseHeld) this.tryShoot(time);
+    // Disparo semiautomático: un tiro por pulsación (sin auto-disparo al mantener).
+    // El clic del ratón y el botón táctil ya disparan una sola vez en pointerdown.
+    const firePressed = this.keys.fire.isDown || this.keys.fireAlt.isDown;
+    if (firePressed && !this.fireKeyDown) {
+      this.fireKeyDown = true;
+      this.tryShoot(time);
+    } else if (!firePressed) {
+      this.fireKeyDown = false;
+    }
   }
 
   // Q / botón ARMA: cicla entre las armas que Calito tiene.
