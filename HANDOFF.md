@@ -13,8 +13,9 @@ v0.1.0 se conserva como cimiento técnico.
 
 - Documento de referencia: `docs/MASTER_DOC.md` (Documento Maestro v1.2).
 - Auditoría de adaptación y brechas: `docs/V1.2_AUDIT.md`.
-- Plan por slices: **Slice A** (combate y crimen en San Miguelito) → **Slice B**
-  (infección, zombis, inventario, transición narrativa y supervivencia).
+- **Lo que falta, priorizado:** `docs/BACKLOG.md`.
+- Plan por slices: **Slice A** (combate y crimen en San Miguelito) ✅ cerrado →
+  **Slice B** (infección, zombis, inventario, transición narrativa y supervivencia).
 
 ## Estado: v0.3.0 · Slice A cerrado
 
