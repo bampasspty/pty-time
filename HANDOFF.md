@@ -92,6 +92,9 @@ node tools/qa-prod.mjs     # verifica la build pública de Vercel (sin servidor 
 ## Publicación
 
 - Producción: **https://pty-time.vercel.app** (v0.5.0, auto-deploy desde `main`).
+- Verificación 2026-11-08: build `index-SFuLZVbb.js`, HTTP 200, 12/12 comprobaciones de
+  producción (`tools/qa-prod.mjs`), 0 errores de consola, 56 FPS a 1280×720 y 50 FPS en
+  gama baja emulada (CPU 4×, 844×390 táctil).
 - Proyecto: `gestion14/pty-time` · framework Vite · build `pnpm build` · salida `dist`.
 - **GitHub conectado a Vercel**: cada push a `main` despliega automáticamente.
 - Para desplegar manualmente: `pnpm deploy:vercel`.
