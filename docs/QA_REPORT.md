@@ -64,7 +64,7 @@ Resultado: **10/10 comprobaciones pasan, 0 errores de consola**, contra la URL p
 
 | Entorno | FPS |
 |---|---|
-| Producción 1280×720 | 56–58 |
+| Producción 1280×720 | 49–58 |
 | Local 1280×720 (combate + colapso) | 57–60 |
 | Local 844×390 (móvil horizontal) | 50–57 |
 

@@ -48,7 +48,8 @@ cerrado en v0.4.0 (Slice A + Slice B).
 - 69 PNG de pixel art (46.6 KB) + generador determinista; efectos en memoria.
 - Pruebas: **73/73** unitarias, **20/20** E2E de regresión, **30/30** E2E de combate y
   **10/10** comprobaciones contra la URL pública (0 errores de consola).
-- Build de producción OK: 1,347.14 KB (375.06 KB gzip).
+- Build de producción OK y **desplegada**: 1,347.14 KB (375.06 KB gzip), 49–58 FPS en
+  producción y 56–57 FPS en gama baja emulada (CPU 4×, 844×390 táctil).
 
 ### Pendiente real
 

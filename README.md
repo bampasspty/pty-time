@@ -59,7 +59,7 @@ con PTY Alerta y guardado local.
 
 Desplegada en Vercel (proyecto `pty-time`). Verificación automatizada contra la URL
 pública: HTTP 200, 10/10 comprobaciones (`tools/qa-prod.mjs`), 0 errores de consola,
-56–58 FPS en Edge headless y 56 FPS en gama baja emulada (CPU 4×, 844×390 táctil).
+49–58 FPS en Edge headless y 56–57 FPS en gama baja emulada (CPU 4×, 844×390 táctil).
 
 ## Estado
 
