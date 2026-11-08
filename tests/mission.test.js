@@ -172,6 +172,45 @@ test('sobrevivir a cinco infectados lleva a la fonda y cierra el capítulo', () 
   assert.equal(mission.markerNpc(), 'nena');
 });
 
+test('las misiones del refugio se abren tras el Capítulo III', () => {
+  const mission = new MissionSystem({
+    missions: {
+      'el-mandado': { step: 'done' },
+      'limpia-la-cancha': { step: 'done' },
+      'el-colapso': { step: 'done' },
+    },
+  });
+  assert.equal(mission.getState('el-ultimo-mandado').step, 'inactive');
+  assert.equal(mission.getState('limpia-la-avenida').step, 'inactive');
+
+  const start = mission.applyAction('startLastErand');
+  assert.equal(start.changed, true);
+  assert.equal(mission.getState('el-ultimo-mandado').step, 'find-medicina');
+  const recogido = mission.collectItem('medicina');
+  assert.equal(recogido.collected, true);
+  const finish = mission.applyAction('finishLastErand');
+  assert.equal(finish.changed, true);
+  assert.equal(finish.kind, 'finish');
+  assert.equal(mission.coins, 80);
+  assert.ok(mission.contacts.includes('nena'));
+
+  const avenida = mission.applyAction('startAvenida');
+  assert.equal(avenida.changed, true);
+  assert.equal(mission.getState('limpia-la-avenida').step, 'deal');
+});
+
+test('la reputación da niveles y descuento en la tienda', () => {
+  const fresh = new MissionSystem({});
+  assert.equal(fresh.repLabel, 'DESCONOCIDO');
+  assert.equal(fresh.shopDiscount, 0);
+  const veteran = new MissionSystem({ reputation: { barrio: 12 } });
+  assert.equal(veteran.repLabel, 'CONOCIDO');
+  assert.equal(veteran.shopDiscount, 0.1);
+  const padrino = new MissionSystem({ reputation: { barrio: 60 } });
+  assert.equal(padrino.repLabel, 'PADRINO');
+  assert.equal(padrino.shopDiscount, 0.3);
+});
+
 test('el colapso no se dispara antes de terminar la misión criminal', () => {
   const mission = new MissionSystem({});
   assert.equal(mission.applyAction('collapseStarts').changed, false);

@@ -343,6 +343,8 @@ export const SAN_MIGUELITO = {
   items: [
     // Chancleta perdida en la bahía de la parada, a la vista.
     { id: 'chancla', kind: 'chancla', x: 680, y: 502 },
+    // Medicinas para 'El último mandado' (cerca de la escuela).
+    { id: 'medicina', kind: 'medicina', x: 840, y: 520 },
   ],
 
   // Matones del Slice A: se paran por la plaza de Los Andes (misión criminal).

@@ -71,6 +71,7 @@ export class UIScene extends Phaser.Scene {
     this.hpBarFill = this.add.rectangle(0, 0, 96, 9, COLORS.red, 1).setOrigin(0, 0);
     this.combatText = this.add.text(0, 0, 'LA 9 8/30', textStyle(8, CSS.soft)).setOrigin(0, 0);
     this.xpText = this.add.text(0, 0, 'NIVEL 1 · 0/80 XP', textStyle(8, CSS.yellow)).setOrigin(0, 0);
+    this.survivalText = this.add.text(0, 0, 'HAMBRE 100 · RESIST 100', textStyle(8, CSS.soft)).setOrigin(0, 0);
 
     this.hudContainer.add([
       this.hudBg,
@@ -81,6 +82,7 @@ export class UIScene extends Phaser.Scene {
       this.hpBarFill,
       this.combatText,
       this.xpText,
+      this.survivalText,
     ]);
   }
 
@@ -251,6 +253,8 @@ export class UIScene extends Phaser.Scene {
     this.onPlayerDown = () => this.showPlayerDown();
     this.onStoryRequest = (data) => this.showStory(data);
     this.onInventoryOpen = (data) => this.showInventory(data);
+    this.onCraftOpen = (data) => this.showCrafting(data);
+    this.onShopOpen = (data) => this.showShop(data);
 
     events.on('hud:update', this.onHudUpdate);
     events.on('hud:toast', this.onToast);
@@ -266,6 +270,8 @@ export class UIScene extends Phaser.Scene {
     events.on('player:down', this.onPlayerDown);
     events.on('story:request', this.onStoryRequest);
     events.on('inventory:open', this.onInventoryOpen);
+    events.on('craft:open', this.onCraftOpen);
+    events.on('shop:open', this.onShopOpen);
 
     this.input.on('pointerdown', this.onPointerDown, this);
     this.input.on('pointermove', this.onPointerMove, this);
@@ -287,6 +293,10 @@ export class UIScene extends Phaser.Scene {
     }
     if ((code === 'KeyI' || code === 'Tab') && !this.drillState?.active) {
       events.emit('ui:inventory');
+      return;
+    }
+    if (code === 'KeyF' && !this.drillState?.active) {
+      events.emit('ui:craft');
       return;
     }
     if (code === 'Escape') {
@@ -368,7 +378,7 @@ export class UIScene extends Phaser.Scene {
     this.hudLabel.setText('MISIÓN');
     this.hudObjective.setWordWrapWidth(wrap, true);
     this.hudObjective.setText(this.hudState?.objective ?? '');
-    this.coinsText.setText(`YAPA ${this.hudState?.coins ?? 0}`);
+    this.coinsText.setText(`YAPA ${this.hudState?.coins ?? 0} · ${this.hudState?.repLabel ?? 'DESCONOCIDO'}`);
     this.layoutHud();
     this.updateCombatHud();
   }
@@ -392,6 +402,10 @@ export class UIScene extends Phaser.Scene {
     const xp = this.hudState?.xp ?? 0;
     const xpNext = this.hudState?.xpNext ?? 80;
     this.xpText.setText(`NIVEL ${level} · ${xp}/${xpNext} XP`);
+    const hunger = Math.round(Number(this.hudState?.hunger ?? 100));
+    const stamina = Math.round(Number(this.hudState?.stamina ?? 100));
+    this.survivalText.setText(`HAMBRE ${hunger} · RESIST ${stamina}`);
+    this.survivalText.setColor(hunger <= 20 || stamina <= 20 ? CSS.red : CSS.soft);
   }
 
   layoutHud() {
@@ -409,15 +423,23 @@ export class UIScene extends Phaser.Scene {
     const combatY = 8 + this.hudLabel.height + 6 + this.hudObjective.height + 8;
 
     this.combatText.setStyle(textStyle(clamp(Math.round(H / 60), 8, 11), CSS.soft));
-    const w = Math.min(380, Math.max(200, Math.max(this.hudObjective.width + 28, this.combatText.width + 28, this.xpText.width + 28)));
+    const maxHudW = W < 520 ? Math.max(170, W * 0.55) : 380;
+    const w = Math.min(maxHudW, Math.max(170, Math.max(
+      this.hudObjective.width + 28,
+      this.combatText.width + 28,
+      this.xpText.width + 28,
+      this.survivalText.width + 28,
+    )));
     const barW = Math.max(64, Math.min(96, w - 24));
     this.hpBarBg.setSize(barW, 9).setPosition(12, combatY);
     this.hpBarFill.setPosition(12, combatY);
     this.combatText.setPosition(12, combatY + 12);
     this.xpText.setStyle(textStyle(clamp(Math.round(H / 62), 7, 10), CSS.yellow));
     this.xpText.setPosition(12, combatY + 12 + this.combatText.height + 2);
+    this.survivalText.setStyle(textStyle(clamp(Math.round(H / 62), 7, 10), CSS.soft));
+    this.survivalText.setPosition(12, combatY + 12 + this.combatText.height + 2 + this.xpText.height + 2);
 
-    const h = combatY + 12 + this.combatText.height + 2 + this.xpText.height + 8;
+    const h = combatY + 12 + this.combatText.height + 2 + this.xpText.height + 2 + this.survivalText.height + 8;
     this.hudBg.setSize(w, h);
     this.hudAccent.setSize(3, h);
     this.hudContainer.setPosition(8, 8);
@@ -517,6 +539,7 @@ export class UIScene extends Phaser.Scene {
         'WASD o flechas: caminar. En el teléfono usa el joystick.',
         'CLIC izquierdo o J: disparar. R: recargar. Q: cambiar de arma.',
         'I o TAB: abrir la mochila. En el tel\u00e9fono, bot\u00f3n MOCHILA.',
+        'F: taller de fabricación. SHIFT: correr (gasta resistencia).',
         'E, ESPACIO o el botón HABLAR: conversar y avanzar diálogos.',
         'C o CUBRIRSE: agacharte y protegerte.',
         'Sigue la estrella amarilla para saber con quién hablar o dónde pelear.',
@@ -641,6 +664,7 @@ export class UIScene extends Phaser.Scene {
     const buttons = [];
     if (data.canHeal) buttons.push({ label: 'USAR VENDAJE', value: 'heal', primary: true });
     if (data.canAmmo) buttons.push({ label: 'ABRIR CAJA', value: 'ammo', primary: !data.canHeal });
+    buttons.push({ label: 'FABRICAR', value: 'craft' });
     buttons.push({ label: 'CERRAR', value: 'close', primary: buttons.length === 0 });
     this.modal.open({
       title: 'MOCHILA ' + (data.size ?? 0) + '/' + (data.capacity ?? 12),
@@ -650,6 +674,49 @@ export class UIScene extends Phaser.Scene {
       onButton: (value) => {
         if (value === 'heal') events.emit('ui:use-item', { id: 'vendaje' });
         if (value === 'ammo') events.emit('ui:use-item', { id: 'balas9' });
+        if (value === 'craft') events.emit('ui:craft');
+      },
+      onClose: () => this.refreshControls(),
+    });
+  }
+
+  showCrafting(data) {
+    const recipes = Array.isArray(data.recipes) ? data.recipes : [];
+    const bullets = recipes.map((recipe) => {
+      const parts = recipe.inputs.map((input) => input.name + ' ' + input.have + '/' + input.qty).join(' + ');
+      return (recipe.canCraft ? '> ' : '- ') + recipe.name + ': ' + parts;
+    });
+    if (!bullets.length) bullets.push('No hay recetas.');
+    const craftable = recipes.filter((recipe) => recipe.canCraft).slice(0, 3);
+    const buttons = craftable.map((recipe) => ({ label: recipe.name, value: recipe.id, primary: true }));
+    buttons.push({ label: 'CERRAR', value: 'close', primary: buttons.length === 0 });
+    this.modal.open({
+      title: 'TALLER ' + (data.size ?? 0) + '/' + (data.capacity ?? 12),
+      bullets,
+      buttons,
+      dismissible: true,
+      onButton: (value) => {
+        if (value !== 'close') events.emit('craft:item', { id: value });
+      },
+      onClose: () => this.refreshControls(),
+    });
+  }
+
+  showShop(data) {
+    const items = Array.isArray(data.items) ? data.items : [];
+    const bullets = items.map((item) => item.name + ' · ' + item.price + ' yapa');
+    bullets.push('Yapa: ' + (data.coins ?? 0));
+    const discount = Math.round((data.discount ?? 0) * 100);
+    if (discount > 0) bullets.push('Descuento por reputación: ' + discount + '%');
+    const buttons = items.slice(0, 4).map((item) => ({ label: item.name + ' ' + item.price, value: item.id }));
+    buttons.push({ label: 'CERRAR', value: 'close', primary: true });
+    this.modal.open({
+      title: 'MINISÚPER EL CHEN',
+      bullets,
+      buttons,
+      dismissible: true,
+      onButton: (value) => {
+        if (value !== 'close') events.emit('shop:buy', { id: value });
       },
       onClose: () => this.refreshControls(),
     });
@@ -749,6 +816,8 @@ export class UIScene extends Phaser.Scene {
     events.off('player:down', this.onPlayerDown);
     events.off('story:request', this.onStoryRequest);
     events.off('inventory:open', this.onInventoryOpen);
+    events.off('craft:open', this.onCraftOpen);
+    events.off('shop:open', this.onShopOpen);
     this.dialogue?.destroy();
     this.modal?.destroy();
   }

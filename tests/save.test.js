@@ -129,6 +129,22 @@ test('migra un guardado v2 (Slice A) y le agrega el Slice B', () => {
   assert.equal(loaded.wallet.coins, 85);
 });
 
+test('el guardado v5 trae supervivencia y contactos', () => {
+  const save = defaultSave();
+  assert.deepEqual(save.survival, { hunger: 100, stamina: 100 });
+  assert.deepEqual(save.reputation.contacts, []);
+  const loaded = sanitizeSave({
+    ...save,
+    started: true,
+    survival: { hunger: 42, stamina: 77 },
+    reputation: { barrio: 30, contacts: ['nena', 'chen', 'nena'] },
+  });
+  assert.equal(loaded.survival.hunger, 42);
+  assert.equal(loaded.survival.stamina, 77);
+  assert.deepEqual(loaded.reputation.contacts, ['nena', 'chen']);
+  assert.equal(loaded.reputation.barrio, 30);
+});
+
 test('migra un guardado v3 (Slice B) y le agrega la Fase 3', () => {
   const v3 = {
     version: 3,

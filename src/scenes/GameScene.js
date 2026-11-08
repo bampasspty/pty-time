@@ -13,6 +13,8 @@ import { MissionSystem } from '../systems/MissionSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { InventorySystem } from '../systems/InventorySystem.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
+import { CraftingSystem } from '../systems/CraftingSystem.js';
+import { SurvivalSystem } from '../systems/SurvivalSystem.js';
 import { getWeapon, isWeaponId } from '../data/weapons.js';
 import { readSave, sanitizeSave, writeSave } from '../systems/SaveSystem.js';
 import { QuakeDrill } from '../systems/QuakeDrill.js';
@@ -21,13 +23,21 @@ import { Player } from '../entities/Player.js';
 import { NPC } from '../entities/NPC.js';
 import { Enemy } from '../entities/Enemy.js';
 import { Bullet } from '../entities/Bullet.js';
-import { cameraZoom, clamp, CSS, textStyle, COLORS } from '../config.js';
+import { WORLD, cameraZoom, clamp, CSS, textStyle, COLORS } from '../config.js';
 
 const BULLET_POOL = 28;
 const AIM_HEIGHT = 10; // las balas salen del torso, no de los pies
 const HURT_COOLDOWN = 520;
 // Caja de suministro del mapa -> objeto del inventario.
 const SUPPLY_ITEMS = { vendaje: 'vendaje', lata: 'lata', caja: 'balas9' };
+const SPRINT_FACTOR = 1.45;
+// Tienda de Don Chen (precio base; la reputación da descuento).
+const SHOP_ITEMS = [
+  { id: 'vendaje', price: 15 },
+  { id: 'lata', price: 10 },
+  { id: 'polvora', price: 14 },
+  { id: 'metal', price: 14 },
+];
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -44,6 +54,9 @@ export class GameScene extends Phaser.Scene {
     this.combat = new CombatSystem(this.save);
     this.inventory = new InventorySystem(this.save);
     this.progression = new ProgressionSystem(this.save);
+    this.survival = new SurvivalSystem(this.save);
+    this.crafting = new CraftingSystem();
+    this.lastSurvivalHud = 0;
     this.combat.setMaxHp(100 + this.progression.maxHpBonus);
     this.phase = this.save.world.phase;
     this.storyOpen = false;
@@ -365,6 +378,8 @@ export class GameScene extends Phaser.Scene {
 
   onEnemyDefeated(enemy) {
     this.combat.addDefeat(1);
+    const drop = enemy?.def?.drop;
+    if (drop) this.inventory.add(drop.id, drop.qty);
     this.grantXp(enemy?.def?.xp ?? 10);
     const progress = this.mission.handleEnemyDefeated();
     if (progress.progressed) {
@@ -530,6 +545,11 @@ export class GameScene extends Phaser.Scene {
       reputation: this.mission.reputation.barrio,
       mochila: this.inventory.size,
       phase: this.phase,
+      hunger: Math.round(this.survival.hunger),
+      stamina: Math.round(this.survival.stamina),
+      repLabel: this.mission.repLabel,
+      contacts: this.mission.contacts.length,
+      discount: this.mission.shopDiscount,
       level: this.progression.level,
       xp: this.progression.xp,
       xpNext: this.progression.xpNext,
@@ -596,6 +616,12 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.flash(420, 120, 0, 0);
       this.cameras.main.shake(520, 0.004);
       events.emit('area:enter', { title: 'EL COLAPSO', subtitle: 'San Miguelito ya no es el mismo' });
+    }
+    if (this.mission.contacts.length > 0) {
+      this.inventory.add('vendaje', 1);
+      this.inventory.add('lata', 1);
+      this.combat.addAmmo('pistola', 8);
+      events.emit('hud:toast', 'Tus contactos te guardaron suministros.');
     }
     events.emit('hud:toast', 'PTY ALERTA: esto no es un simulacro. Mantente vivo.');
     this.persist();
@@ -739,12 +765,75 @@ export class GameScene extends Phaser.Scene {
       this.inventory.use(itemId);
       this.combat.heal(item.heal);
       events.emit('hud:toast', this.combat.hp > before ? 'Usaste ' + item.name + '.' : 'Ya estabas entero.');
+    } else if (item.hunger) {
+      if (!this.inventory.has(itemId)) return;
+      this.inventory.use(itemId);
+      this.survival.eat(item.hunger);
+      events.emit('hud:toast', 'Comiste: ' + item.name);
     } else if (item.ammo && item.ammoType) {
       if (!this.inventory.has(itemId)) return;
       this.inventory.use(itemId);
       this.combat.addAmmo(item.ammoType, item.ammo);
       events.emit('hud:toast', '+' + item.ammo + ' balas para la 9.');
     }
+    this.persist();
+    this.emitHud();
+  }
+
+  // ------------------------------------------------- Fase 3/4: taller y tienda
+
+  openCrafting() {
+    if (this.dialogueOpen || this.modalOpen || this.ko) return;
+    events.emit('craft:open', {
+      recipes: this.crafting.list(this.inventory),
+      size: this.inventory.size,
+      capacity: this.inventory.capacity,
+    });
+  }
+
+  craftItem(recipeId) {
+    const result = this.crafting.craft(this.inventory, recipeId);
+    if (result.crafted) {
+      events.emit('hud:toast', result.message);
+      this.persist();
+      this.emitHud();
+    } else if (result.reason === 'missing-materials') {
+      events.emit('hud:toast', 'Te faltan materiales.');
+    } else if (result.reason === 'inventory-full') {
+      events.emit('hud:toast', 'La mochila está llena.');
+    }
+  }
+
+  openShop() {
+    if (this.modalOpen || this.ko) return;
+    const discount = this.mission.shopDiscount;
+    const items = SHOP_ITEMS.map((entry) => {
+      const item = getItem(entry.id);
+      return {
+        id: entry.id,
+        name: item?.name ?? entry.id,
+        price: Math.max(1, Math.round(entry.price * (1 - discount))),
+      };
+    });
+    events.emit('shop:open', { items, coins: this.mission.coins, discount, repLabel: this.mission.repLabel });
+  }
+
+  buyItem(itemId) {
+    const entry = SHOP_ITEMS.find((shopItem) => shopItem.id === itemId);
+    const item = getItem(itemId);
+    if (!entry || !item) return;
+    const price = Math.max(1, Math.round(entry.price * (1 - this.mission.shopDiscount)));
+    if (this.mission.coins < price) {
+      events.emit('hud:toast', 'No te alcanza la yapa.');
+      return;
+    }
+    const result = this.inventory.add(itemId, 1);
+    if (result.added <= 0) {
+      events.emit('hud:toast', 'La mochila está llena.');
+      return;
+    }
+    this.mission.wallet.coins -= price;
+    events.emit('hud:toast', 'Compraste: ' + item.name);
     this.persist();
     this.emitHud();
   }
@@ -784,6 +873,7 @@ export class GameScene extends Phaser.Scene {
       fireAlt: Keyboard.KeyCodes.K,
       reload: Keyboard.KeyCodes.R,
       switchWeapon: Keyboard.KeyCodes.Q,
+      sprint: Keyboard.KeyCodes.SHIFT,
     });
     this.input.keyboard.addCapture([
       Keyboard.KeyCodes.UP,
@@ -810,7 +900,8 @@ export class GameScene extends Phaser.Scene {
       this.dialogueOpen = false;
       this.dialogueNpc?.stopTalking();
       this.dialogueNpc = null;
-      if (action) this.handleMissionAction(action);
+      if (action === 'openShop') this.openShop();
+      else if (action) this.handleMissionAction(action);
       this.updateItemVisibility();
       this.updateQuestMarker();
     };
@@ -823,6 +914,9 @@ export class GameScene extends Phaser.Scene {
     this.onUiInventory = () => this.openInventory();
     this.onUiUseItem = ({ id } = {}) => this.useInventoryItem(id);
     this.onStoryFinished = ({ id } = {}) => this.handleStoryFinished(id);
+    this.onUiCraft = () => this.openCrafting();
+    this.onCraftItem = ({ id } = {}) => this.craftItem(id);
+    this.onShopBuy = ({ id } = {}) => this.buyItem(id);
 
     events.on('ui:interact', this.onUiInteract);
     events.on('ui:busy', this.onUiBusy);
@@ -837,6 +931,9 @@ export class GameScene extends Phaser.Scene {
     events.on('ui:inventory', this.onUiInventory);
     events.on('ui:use-item', this.onUiUseItem);
     events.on('story:finished', this.onStoryFinished);
+    events.on('ui:craft', this.onUiCraft);
+    events.on('craft:item', this.onCraftItem);
+    events.on('shop:buy', this.onShopBuy);
 
     this.onPageHide = () => this.persist();
     window.addEventListener('pagehide', this.onPageHide);
@@ -855,6 +952,9 @@ export class GameScene extends Phaser.Scene {
       events.off('ui:inventory', this.onUiInventory);
       events.off('ui:use-item', this.onUiUseItem);
       events.off('story:finished', this.onStoryFinished);
+      events.off('ui:craft', this.onUiCraft);
+      events.off('craft:item', this.onCraftItem);
+      events.off('shop:buy', this.onShopBuy);
       window.removeEventListener('pagehide', this.onPageHide);
       this.drill?.stop();
       this.mapBuilder?.destroy();
@@ -869,7 +969,16 @@ export class GameScene extends Phaser.Scene {
     const locked = this.dialogueOpen || this.modalOpen || this.ko;
     const crouch = !locked && (this.keys.crouch.isDown || inputState.crouch);
     this.player.setCrouching(crouch);
-    this.player.updateMovement(delta, locked ? { x: 0, y: 0 } : this.readMovement(), locked);
+    const movement = locked ? { x: 0, y: 0 } : this.readMovement();
+    const moving = Math.hypot(movement.x, movement.y) > 0.1;
+    const sprinting = !locked && moving && this.keys.sprint.isDown && this.survival.canSprint;
+    this.player.speed = WORLD.speed * this.survival.speedFactor * (sprinting ? SPRINT_FACTOR : 1);
+    this.player.updateMovement(delta, movement, locked);
+    this.survival.tick(delta, { sprinting });
+    if (time - this.lastSurvivalHud > 500) {
+      this.lastSurvivalHud = time;
+      this.emitHud();
+    }
 
     this.playerShadow.setPosition(this.player.x, this.player.y - 1).setDepth(this.player.y - 1);
 
@@ -1105,7 +1214,7 @@ export class GameScene extends Phaser.Scene {
 
   updateItemVisibility() {
     for (const item of this.items) {
-      const visible = item.id === 'chancla' && this.mission.canCollect('chancla') && Boolean(item.sprite);
+      const visible = this.mission.canCollect(item.id) && Boolean(item.sprite);
       item.sprite?.setVisible(visible);
       item.glow?.setVisible(visible);
     }
@@ -1159,6 +1268,7 @@ export class GameScene extends Phaser.Scene {
       world: this.save.world,
       story: this.save.story,
       inventory: this.inventory.toSave(),
+      survival: this.survival.toSave(),
       started: true,
     };
     this.save.world.phase = this.phase;

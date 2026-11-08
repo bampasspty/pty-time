@@ -24,6 +24,7 @@ export const ZOMBIES = Object.freeze({
     alertNoise: 320,
     rewardCoins: 2,
     xp: 12,
+    drop: Object.freeze({ id: 'trapo', qty: 1 }),
   }),
 });
 

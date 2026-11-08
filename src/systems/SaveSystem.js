@@ -18,10 +18,11 @@ import {
 import { STARTING_INVENTORY } from '../data/items.js';
 import { InventorySystem } from './InventorySystem.js';
 import { ProgressionSystem } from './ProgressionSystem.js';
+import { SurvivalSystem } from './SurvivalSystem.js';
 
 // La clave se mantiene para no perder las partidas de la demo v0.1.0.
 export const SAVE_KEY = 'pty-time-save-v1';
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 const PLAYER_VARIANTS = /^[mf]-(red|blue|yellow|green)$/;
 const FLAGS = ['hasChancla', 'drillUnlocked', 'drillCompleted'];
@@ -58,8 +59,9 @@ export function defaultSave() {
     player: { hp: 100, maxHp: 100 },
     combat: defaultCombat(),
     progression: { level: 1, xp: 0 },
+    survival: { hunger: 100, stamina: 100 },
     wallet: { coins: 0 },
-    reputation: { barrio: 0 },
+    reputation: { barrio: 0, contacts: [] },
     missions,
     world: { phase: 'barrio', suppliesTaken: [], weaponsTaken: [] },
     story: { introSeen: false, collapseSeen: false },
@@ -186,9 +188,15 @@ export function sanitizeSave(raw) {
   save.combat.defeats = asInt(source.combat?.defeats, 0);
 
   save.progression = new ProgressionSystem(source).toSave();
+  save.survival = new SurvivalSystem(source).toSave();
 
   save.wallet.coins = asInt(source.wallet?.coins, 0);
   save.reputation.barrio = asInt(source.reputation?.barrio, 0);
+  const rawContacts = Array.isArray(source.reputation?.contacts) ? source.reputation.contacts : [];
+  save.reputation.contacts = rawContacts
+    .filter((id) => typeof id === 'string' && id.length <= 20)
+    .filter((id, index, list) => list.indexOf(id) === index)
+    .slice(0, 20);
 
   for (const id of MISSION_ORDER) {
     save.missions[id] = sanitizeMission(MISSIONS[id], source.missions?.[id]);
@@ -223,6 +231,8 @@ export function sanitizeSave(raw) {
     save.wallet.coins = 0;
     save.combat = defaultCombat();
     save.progression = { level: 1, xp: 0 };
+    save.survival = { hunger: 100, stamina: 100 };
+    save.reputation.contacts = [];
     save.player.hp = save.player.maxHp;
     save.world.phase = 'barrio';
     save.world.suppliesTaken = [];

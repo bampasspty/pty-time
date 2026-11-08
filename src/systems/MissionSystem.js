@@ -12,7 +12,15 @@ const clampInt = (value, fallback = 0) => {
   return Math.max(0, Math.min(999999, Math.floor(n)));
 };
 
-const FLAGS = ['hasChancla', 'drillUnlocked', 'drillCompleted'];
+const FLAGS = ['hasChancla', 'hasMedicina', 'drillUnlocked', 'drillCompleted'];
+
+// Niveles de reputación del §6: etiqueta y descuento en el comercio.
+const REP_LEVELS = [
+  { min: 50, label: 'PADRINO', discount: 0.3 },
+  { min: 25, label: 'RESPETADO', discount: 0.2 },
+  { min: 10, label: 'CONOCIDO', discount: 0.1 },
+  { min: 0, label: 'DESCONOCIDO', discount: 0 },
+];
 
 function createState(def, raw = {}, legacy = null) {
   const source = raw && typeof raw === 'object' ? raw : {};
@@ -53,7 +61,11 @@ export class MissionSystem {
       this.states[id] = createState(def, raw, legacy);
     }
     this.wallet = { coins: clampInt(save?.wallet?.coins ?? save?.coins, 0) };
-    this.reputation = { barrio: clampInt(save?.reputation?.barrio, 0) };
+    const contacts = Array.isArray(save?.reputation?.contacts) ? save.reputation.contacts : [];
+    this.reputation = {
+      barrio: clampInt(save?.reputation?.barrio, 0),
+      contacts: contacts.filter((id) => typeof id === 'string' && id.length <= 20).slice(0, 20),
+    };
     this.refreshAvailability();
   }
 
@@ -67,6 +79,28 @@ export class MissionSystem {
 
   get coins() {
     return this.wallet.coins;
+  }
+
+  get contacts() {
+    return this.reputation.contacts;
+  }
+
+  repLevel() {
+    return REP_LEVELS.find((entry) => this.reputation.barrio >= entry.min) ?? REP_LEVELS[REP_LEVELS.length - 1];
+  }
+
+  get repLabel() {
+    return this.repLevel().label;
+  }
+
+  get shopDiscount() {
+    return this.repLevel().discount;
+  }
+
+  addContact(id) {
+    if (!id || this.reputation.contacts.includes(id)) return false;
+    this.reputation.contacts.push(id);
+    return true;
   }
 
   get drillUnlocked() {
@@ -132,6 +166,8 @@ export class MissionSystem {
       drillUnlocked: this.drillUnlocked,
       crimeStep: crime.step,
       collapseStep: collapse.step,
+      lastErandStep: this.states['el-ultimo-mandado'].step,
+      avenidaStep: this.states['limpia-la-avenida'].step,
       kills: crime.kills,
       targetKills: MISSIONS['limpia-la-cancha'].killTarget.count,
     };
@@ -175,6 +211,7 @@ export class MissionSystem {
       const reward = transition.reward ?? null;
       if (reward?.coins) this.wallet.coins += reward.coins;
       if (reward?.reputation) this.reputation.barrio += reward.reputation;
+      if (reward?.contact) this.addContact(reward.contact);
       if (reward?.unlock === 'drill') {
         this.states['el-mandado'].flags.drillUnlocked = true;
       }
@@ -298,7 +335,7 @@ export class MissionSystem {
     return {
       missions,
       wallet: { ...this.wallet },
-      reputation: { ...this.reputation },
+      reputation: { barrio: this.reputation.barrio, contacts: [...this.reputation.contacts] },
     };
   }
 }

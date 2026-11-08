@@ -70,6 +70,12 @@ export const PROPS = Object.freeze({
   subfusil: { image: 'prop-subfusil', width: 16, height: 16, solid: null, pickup: true },
   escopeta: { image: 'prop-escopeta', width: 16, height: 16, solid: null, pickup: true },
   rifle: { image: 'prop-rifle', width: 16, height: 16, solid: null, pickup: true },
+  // Materiales y objetos de la fase 3/4.
+  trapo: { image: 'prop-trapo', width: 16, height: 16, solid: null, pickup: true },
+  polvora: { image: 'prop-polvora', width: 16, height: 16, solid: null, pickup: true },
+  metal: { image: 'prop-metal', width: 16, height: 16, solid: null, pickup: true },
+  botiquin: { image: 'prop-botiquin', width: 16, height: 16, solid: null, pickup: true },
+  medicina: { image: 'prop-medicina', width: 16, height: 16, solid: null, pickup: true },
 });
 
 export const PLAYER_VARIANTS = Object.freeze([

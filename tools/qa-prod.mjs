@@ -43,7 +43,7 @@ const title = await page.evaluate(() => {
   const t = window.__PTY_GAME__.scene.getScene('Title');
   return { footer: t.footer.text, tagline: t.tagline.text, hasSave: t.hasSave };
 });
-check('produccion sirve la v0.5', title.footer.includes('v0.5'), JSON.stringify(title));
+check('produccion sirve la v1.0', title.footer.includes('v1.0'), JSON.stringify(title));
 check('tagline de Calito', title.tagline.includes('Calito'), title.tagline);
 await page.screenshot({ path: `${OUT}/prod-title.png` });
 

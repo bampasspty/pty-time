@@ -14,6 +14,11 @@ const ACTIONS = new Set([
   'finishMission',
   'startCrime',
   'reportCrime',
+  'startLastErand',
+  'finishLastErand',
+  'startAvenida',
+  'finishAvenida',
+  'openShop',
 ]);
 
 test('los 8 NPCs tienen datos completos', () => {
@@ -100,7 +105,7 @@ test('el colapso cambia los diálogos de Nena y Pipe', () => {
 
 test('nunca dispara acciones en pasos intermedios', () => {
   const base = { hasChancla: false, drillUnlocked: false };
-  for (const id of ['chen', 'melva', 'kevin', 'yolanda', 'ana', 'chofer']) {
+  for (const id of ['melva', 'kevin', 'yolanda', 'ana', 'chofer']) {
     for (const step of STEPS) {
       for (const crimeStep of CRIME_STEPS) {
         for (const collapseStep of COLLAPSE_STEPS) {
@@ -110,6 +115,23 @@ test('nunca dispara acciones en pasos intermedios', () => {
       }
     }
   }
+});
+
+test('Don Chen abre la tienda y da las misiones del refugio', () => {
+  const base = { step: 'done', crimeStep: 'done', hasChancla: false, drillUnlocked: true };
+  assert.equal(getDialogue('chen', { ...base, collapseStep: 'done', avenidaStep: 'inactive' }).action, 'startAvenida');
+  assert.equal(getDialogue('chen', { ...base, collapseStep: 'done', avenidaStep: 'deal' }).action, null);
+  assert.equal(getDialogue('chen', { ...base, collapseStep: 'done', avenidaStep: 'report' }).action, 'finishAvenida');
+  assert.equal(getDialogue('chen', { ...base, collapseStep: 'done', avenidaStep: 'done' }).action, 'openShop');
+  assert.equal(getDialogue('chen', { ...base, collapseStep: 'barrio' }).action, 'openShop');
+});
+
+test('Doña Nena da El último mandado y lo cierra', () => {
+  const base = { step: 'done', crimeStep: 'done', collapseStep: 'done', hasChancla: false, drillUnlocked: true };
+  assert.equal(getDialogue('nena', { ...base, lastErandStep: 'inactive' }).action, 'startLastErand');
+  assert.equal(getDialogue('nena', { ...base, lastErandStep: 'find-medicina' }).action, null);
+  assert.equal(getDialogue('nena', { ...base, lastErandStep: 'deliver' }).action, 'finishLastErand');
+  assert.equal(getDialogue('nena', { ...base, lastErandStep: 'done' }).action, null);
 });
 
 test('NPC desconocido y contexto inválido son seguros', () => {

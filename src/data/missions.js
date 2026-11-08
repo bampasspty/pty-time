@@ -161,9 +161,94 @@ export const MISSIONS = Object.freeze({
       bullets: Object.freeze(['Sobreviviste al primer día']),
     }),
   }),
+  'el-ultimo-mandado': Object.freeze({
+    id: 'el-ultimo-mandado',
+    category: 'secundaria',
+    title: 'El último mandado',
+    description: 'Doña Nena necesita medicinas para el refugio.',
+    initialStep: 'locked',
+    startStep: 'find-medicina',
+    requires: Object.freeze({ mission: 'el-colapso', step: 'done' }),
+    steps: Object.freeze({
+      inactive: 'Habla con Doña Nena: necesita medicinas para el refugio.',
+      'find-medicina': 'Busca las medicinas cerca de la escuela.',
+      deliver: 'Lleva las medicinas a Doña Nena.',
+      done: 'Le llevaste medicinas al refugio. Doña Nena te lo agradece.',
+    }),
+    order: Object.freeze(['find-medicina', 'deliver', 'done']),
+    actions: Object.freeze({
+      startLastErand: Object.freeze({ from: 'inactive', to: 'find-medicina', toast: 'Nueva misión: El último mandado' }),
+      finishLastErand: Object.freeze({
+        from: 'deliver',
+        to: 'done',
+        toast: '¡Misión completada!',
+        kind: 'finish',
+        reward: Object.freeze({ coins: 80, xp: 90, contact: 'nena' }),
+        completion: Object.freeze({
+          body: 'Le llevaste las medicinas a Doña Nena. El refugio tiene lo básico gracias a vos.',
+          bullets: Object.freeze(['+80 de yapa', '+90 XP', 'Contacto: Doña Nena']),
+        }),
+      }),
+    }),
+    collectibles: Object.freeze({
+      medicina: Object.freeze({
+        from: 'find-medicina',
+        to: 'deliver',
+        flag: 'hasMedicina',
+        toast: 'Recogiste las medicinas. Llévalas al refugio.',
+      }),
+    }),
+    marker: Object.freeze({ inactive: 'nena', 'find-medicina': 'nena', deliver: 'nena', done: 'nena' }),
+    killTarget: null,
+  }),
+
+  'limpia-la-avenida': Object.freeze({
+    id: 'limpia-la-avenida',
+    category: 'supervivencia',
+    title: 'La avenida está tomada',
+    description: 'Don Chen necesita la avenida despejada para repartir comida.',
+    initialStep: 'locked',
+    startStep: 'deal',
+    requires: Object.freeze({ mission: 'el-colapso', step: 'done' }),
+    steps: Object.freeze({
+      inactive: 'Habla con Don Chen en el minisúper.',
+      deal: 'Elimina a los infectados de la avenida.',
+      report: 'Vuelve con Don Chen.',
+      done: 'La avenida está despejada. Chen puede repartir comida.',
+    }),
+    order: Object.freeze(['deal', 'report', 'done']),
+    actions: Object.freeze({
+      startAvenida: Object.freeze({ from: 'inactive', to: 'deal', toast: 'Nueva misión: La avenida está tomada' }),
+      finishAvenida: Object.freeze({
+        from: 'report',
+        to: 'done',
+        toast: '¡Misión completada!',
+        kind: 'finish',
+        reward: Object.freeze({ coins: 90, xp: 100, contact: 'chen' }),
+        completion: Object.freeze({
+          body: 'Despejaste la avenida y Don Chen ya puede mover la mercancía. El minisúper te lo debe.',
+          bullets: Object.freeze(['+90 de yapa', '+100 XP', 'Contacto: Don Chen']),
+        }),
+      }),
+    }),
+    collectibles: Object.freeze({}),
+    marker: Object.freeze({ inactive: 'chen', report: 'chen', done: 'chen' }),
+    killTarget: Object.freeze({
+      count: 6,
+      from: 'deal',
+      to: 'report',
+      toast: 'La avenida está limpia. Vuelve con Don Chen.',
+    }),
+  }),
 });
 
-export const MISSION_ORDER = Object.freeze(['el-mandado', 'limpia-la-cancha', 'el-colapso']);
+export const MISSION_ORDER = Object.freeze([
+  'el-mandado',
+  'limpia-la-cancha',
+  'el-colapso',
+  'el-ultimo-mandado',
+  'limpia-la-avenida',
+]);
 
 // Compatibilidad con código/versiones anteriores que importaban MISSION.
 export const MISSION = MISSIONS['el-mandado'];

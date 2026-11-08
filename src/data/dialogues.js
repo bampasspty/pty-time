@@ -27,6 +27,9 @@ const CRIME_STEPS = new Set(['locked', 'inactive', 'deal', 'report', 'done']);
 
 // Paso del capítulo del colapso (Slice B).
 const COLLAPSE_STEPS = new Set(['locked', 'inactive', 'survive', 'refugio', 'done']);
+// Misiones extra de Fase 3/4.
+const LAST_ERAND_STEPS = new Set(['locked', 'inactive', 'find-medicina', 'deliver', 'done']);
+const AVENIDA_STEPS = new Set(['locked', 'inactive', 'deal', 'report', 'done']);
 
 // Una "página" de diálogo.
 const page = (speaker, text) => ({ speaker, text });
@@ -44,6 +47,8 @@ function normalizeContext(ctx) {
     drillUnlocked: raw.drillUnlocked === true,
     crimeStep: CRIME_STEPS.has(raw.crimeStep) ? raw.crimeStep : 'unknown',
     collapseStep: COLLAPSE_STEPS.has(raw.collapseStep) ? raw.collapseStep : 'unknown',
+    lastErandStep: LAST_ERAND_STEPS.has(raw.lastErandStep) ? raw.lastErandStep : 'unknown',
+    avenidaStep: AVENIDA_STEPS.has(raw.avenidaStep) ? raw.avenidaStep : 'unknown',
     kills: Number.isFinite(raw.kills) ? Math.max(0, Math.floor(raw.kills)) : 0,
   };
 }
@@ -98,6 +103,37 @@ function nenaDialogue(ctx) {
   }
 
   if (ctx.step === 'done') {
+    if (ctx.lastErandStep === 'inactive' && ctx.collapseStep === 'done') {
+      return reply(
+        [
+          page(speaker, 'Mijo, en el refugio no queda ni una curita.'),
+          page(speaker, 'Cerca de la escuela quedó un botiquín de la Cruz Roja. ¿Me lo traes?'),
+        ],
+        'startLastErand',
+      );
+    }
+
+    if (ctx.lastErandStep === 'find-medicina') {
+      return reply([
+        page(speaker, 'Las medicinas están por la escuela, del lado del patio.'),
+        page(speaker, 'Date prisa, que aquí hay gente que lo necesita.'),
+      ]);
+    }
+
+    if (ctx.lastErandStep === 'deliver') {
+      return reply([
+        page(speaker, '¿Eso es lo que encontraste? Bendito sea, mijo.'),
+        page(speaker, 'Dámelo, que aquí lo reparto.'),
+      ], 'finishLastErand');
+    }
+
+    if (ctx.lastErandStep === 'done') {
+      return reply([
+        page(speaker, 'Con esas medicinas aguantamos unos días más.'),
+        page(speaker, 'Te debo una, mijo. Y aquí pagamos lo que debemos.'),
+      ]);
+    }
+
     if (ctx.collapseStep === 'survive') {
       return reply([
         page(speaker, '¡Mijo, no salgas! Esa gente no está bien. Se les ve en la cara.'),
@@ -238,6 +274,54 @@ function pipeDialogue(ctx) {
   return reply([page(speaker, '¿Qué xopá? Aquí andamos, en la cancha.')]);
 }
 
+function chenDialogue(ctx) {
+  const speaker = NPCS.chen.name;
+
+  if (ctx.collapseStep === 'done') {
+    if (ctx.avenidaStep === 'inactive') {
+      return reply(
+        [
+          page(speaker, '¿Viste cómo está la avenida? Llena de esos... cosas.'),
+          page(speaker, 'Si me la despejas, te pago bien. Aquí todo se consigue, menos la calle.'),
+        ],
+        'startAvenida',
+      );
+    }
+
+    if (ctx.avenidaStep === 'deal') {
+      return reply([
+        page(speaker, 'La avenida sigue llena. Dale, que mis clientes no pueden pasar.'),
+      ]);
+    }
+
+    if (ctx.avenidaStep === 'report') {
+      return reply(
+        [
+          page(speaker, '¡Ahora sí! Se puede pasar otra vez.'),
+          page(speaker, 'Toma tu plata, y si necesitas algo, ya sabes dónde venden.'),
+        ],
+        'finishAvenida',
+      );
+    }
+
+    return reply(
+      [
+        page(speaker, 'Aquí vendo de todo: vendas, latas, pólvora y chatarra.'),
+        page(speaker, 'Con la calle despejada, la mercancía entra. ¿Qué te llevas?'),
+      ],
+      'openShop',
+    );
+  }
+
+  return reply(
+    [
+      page(speaker, 'Aquí todo se consigue: el pan, el jabón y hasta el chisme del día.'),
+      page(speaker, 'San Miguelito es de los lugares más poblados del país.'),
+    ],
+    'openShop',
+  );
+}
+
 // Vecinos del barrio: dos páginas fijas de conversación; si la misión está activa
 // pueden soltar una pista del paso actual y, ya desbloqueado el simulacro, un
 // comentario sobre el simulacro. Nunca pasan de 3 páginas.
@@ -350,6 +434,7 @@ export function getDialogue(npcId, ctx) {
     case 'pipe':
       return pipeDialogue(state);
     case 'chen':
+      return chenDialogue(state);
     case 'melva':
     case 'kevin':
     case 'yolanda':

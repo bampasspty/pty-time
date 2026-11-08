@@ -356,8 +356,8 @@ const saved = await inGame((gs) => {
   };
 });
 check(
-  'guardado v4 con colapso, armas, progresion e inventario',
-  saved.version === 4 &&
+  'guardado v5 con colapso, armas, progresion e inventario',
+  saved.version === 5 &&
     saved.mandado === 'done' &&
     saved.crime === 'done' &&
     saved.collapse === 'done' &&
@@ -371,6 +371,19 @@ check(
     saved.coins === 85,
   JSON.stringify(saved),
 );
+
+const survival = await inGame((gs) => {
+  const before = gs.survival.hunger;
+  gs.survival.tick(30000, { sprinting: false });
+  const after = gs.survival.hunger;
+  gs.inventory.add('trapo', 2);
+  const crafted = gs.crafting.craft(gs.inventory, 'vendaje').crafted;
+  gs.mission.wallet.coins = 200;
+  gs.buyItem('vendaje');
+  return { before, after, crafted, coins: gs.mission.coins, rep: gs.mission.repLabel };
+});
+check('el hambre baja y se puede fabricar', survival.after < survival.before && survival.crafted === true, JSON.stringify(survival));
+check('la tienda de Chen descuenta yapa', survival.coins < 200 && survival.coins > 0, JSON.stringify(survival));
 
 const progression = await inGame((gs) => ({
   level: gs.progression.level,

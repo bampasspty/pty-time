@@ -21,6 +21,7 @@ export const ENEMIES = Object.freeze({
     alertNoise: 180,
     rewardCoins: 6,
     xp: 14,
+    drop: Object.freeze({ id: 'trapo', qty: 1 }),
   }),
   'maton-duro': Object.freeze({
     id: 'maton-duro',
@@ -36,6 +37,7 @@ export const ENEMIES = Object.freeze({
     alertNoise: 200,
     rewardCoins: 12,
     xp: 30,
+    drop: Object.freeze({ id: 'metal', qty: 1 }),
   }),
 });
 

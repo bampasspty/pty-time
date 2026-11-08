@@ -2568,6 +2568,58 @@ def draw_caja():
     return outline(im)
 
 
+def draw_trapo():
+    im = new(16, 16)
+    rect(im, 2, 5, 12, 7, ACERA_L)
+    hline(im, 3, 7, 10, ACERA)
+    hline(im, 3, 10, 10, ZINC_L)
+    put(im, 4, 6, JOINT)
+    put(im, 11, 9, JOINT)
+    return outline(im)
+
+
+def draw_polvora():
+    im = new(16, 16)
+    rect(im, 4, 3, 8, 10, ZINC_DARK)
+    rect(im, 4, 3, 8, 2, ZINC_L)
+    rect(im, 6, 8, 4, 4, PTY_RED)
+    put(im, 7, 4, TAXI)
+    return outline(im)
+
+
+def draw_metal():
+    im = new(16, 16)
+    rect(im, 2, 7, 12, 6, ZINC)
+    hline(im, 2, 7, 12, ZINC_L)
+    hline(im, 2, 12, 12, ZINC_DARK)
+    rect(im, 4, 4, 3, 3, ZINC_L)
+    rect(im, 9, 3, 3, 4, ZINC_RUST)
+    return outline(im)
+
+
+def draw_botiquin():
+    im = new(16, 16)
+    rect(im, 2, 4, 12, 10, WHITE)
+    hline(im, 2, 4, 13, ACERA_L)
+    rect(im, 7, 6, 2, 6, PTY_RED)
+    rect(im, 4, 8, 8, 2, PTY_RED)
+    rect_outline(im, 2, 4, 12, 10, INK)
+    put(im, 6, 2, INK)
+    put(im, 9, 2, INK)
+    return outline(im)
+
+
+def draw_medicina():
+    im = new(16, 16)
+    rect(im, 3, 4, 10, 10, WALL_SKY)
+    rect(im, 3, 4, 10, 2, WHITE)
+    rect(im, 7, 7, 2, 5, WHITE)
+    rect(im, 5, 9, 6, 2, WHITE)
+    rect_outline(im, 3, 4, 10, 10, INK)
+    put(im, 5, 11, SHADOW)
+    return outline(im)
+
+
 def _diag(im, x0, y0, x1, y1, color):
     """Linea diagonal de pixeles (Bresenham simple)."""
     dx = abs(x1 - x0)
@@ -2663,6 +2715,11 @@ PROP_DRAWERS = [
     ("subfusil", draw_subfusil, (16, 16)),
     ("escopeta", draw_escopeta, (16, 16)),
     ("rifle", draw_rifle, (16, 16)),
+    ("trapo", draw_trapo, (16, 16)),
+    ("polvora", draw_polvora, (16, 16)),
+    ("metal", draw_metal, (16, 16)),
+    ("botiquin", draw_botiquin, (16, 16)),
+    ("medicina", draw_medicina, (16, 16)),
 ]
 BUILDING_SIZES = {
     "house-a": (80, 64), "house-b": (64, 64), "house-c": (96, 80),
