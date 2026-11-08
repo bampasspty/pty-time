@@ -1,4 +1,4 @@
-# QA REPORT · PTY Time v0.5.0 (Fase 3 · arsenal y progresión)
+# QA REPORT · PTY Time v1.0.0 (release pública · Fases 1-4)
 
 Fecha: 2026-11-08 · Navegador: Microsoft Edge headless (Playwright `playwright-core`),
 Windows. Servidor local: Vite 7 en `http://127.0.0.1:5173`. Producción:

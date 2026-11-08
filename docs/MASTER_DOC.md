@@ -6,7 +6,7 @@
 |---|---|
 | Versión | 1.2 (nueva dirección creativa aprobada) |
 | Fecha de consolidación | 2026-11-07 |
-| Estado | Dirección aprobada · MVP cerrado · Fase 3 en curso (v0.5.0: armas y progresión) |
+| Estado | Dirección aprobada · MVP y Fases 3-4 cerrados · release pública v1.0.0 (Fases 5-7 como DLC) |
 | Proyecto | Videojuego independiente · SAVAGE GAMES |
 | Plataforma | Web, con adaptación móvil |
 | Motor | Phaser 3 + Vite (proyecto existente: `pty-time`) |

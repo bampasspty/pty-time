@@ -1,7 +1,7 @@
 # HANDOFF · PTY Time
 
-**Última actualización:** 2026-11-08 (v0.5.0 · Fase 3 arrancada: arsenal y progresión)
-**Versión del repo:** 0.5.0 (`package.json`, `src/config.js` GAME_VERSION)
+**Última actualización:** 2026-11-08 (v1.0.0 · primera release pública: Fases 1-4)
+**Versión del repo:** 1.0.0 (`package.json`, `src/config.js` GAME_VERSION)
 **Demo publicada:** **https://pty-time.vercel.app** (auto-deploy desde `main`)
 **Repositorio:** **https://github.com/bampasspty/pty-time** (rama `main`)
 
@@ -17,7 +17,9 @@ cerrado en v0.4.0 (Slice A + Slice B).
 - Plan por slices: **Slice A** ✅ (combate y crimen) → **Slice B** ✅ (infección, zombi,
   inventario y transición) → siguiente: sistemas de acción y crimen del §5–§9.
 
-## Estado: v0.5.0 · MVP cerrado + Fase 3 (arsenal y progresión)
+## Estado: v1.0.0 · primera release pública (Fases 1-4)
+
+Publicada en https://pty-time.vercel.app. Las Fases 5-7 quedan como DLC/actualizaciones.
 
 ### Ya funciona
 
@@ -58,14 +60,12 @@ cerrado en v0.4.0 (Slice A + Slice B).
 ### Pendiente real
 
 1. **Probar en teléfono físico de gama baja** (QA en emulación Edge con GPU + CPU 4×).
-2. **Resto de la Fase 3**: fabricación (munición, botiquines, barricadas) y supervivencia
-   (hambre, resistencia, estado del refugio); inventario ampliado con peso/capacidad.
-3. **Crimen y consecuencias del §6**: reputación real, influencia, contactos, territorios,
-   propiedades y el puente pre-apocalipsis → supervivencia.
-4. **Mundo de supervivencia del §8/§9**: refugios, supervivientes y vehículos jugables.
-5. **Expansión de mapa del §10**: Ciudad de Panamá, Panamá Oeste, Interior.
-6. **Pulido**: audio, atlas de texturas, CI, menú de pausa/ajustes, guardado en servidor.
-7. Opcional: 8 direcciones visuales (decisión actual: 4 filas + dirección dominante).
+2. **DLC/actualizaciones de contenido** (Fases 5-7): apocalipsis ampliado, refugios y
+   supervivientes, vehículos, expansión de mapa (Ciudad de Panamá, Panamá Oeste, Interior)
+   y capítulos IV-V.
+3. **Pulido**: audio, atlas de texturas, CI, menú de pausa/ajustes, guardado en servidor,
+   territorios/propiedades y más tipos de zombi.
+4. Opcional: 8 direcciones visuales (decisión actual: 4 filas + dirección dominante).
 
 ## Cómo retomar
 

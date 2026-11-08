@@ -1,6 +1,6 @@
 # BACKLOG · PTY TIME
 
-**Estado:** v0.5.0 · MVP cerrado + **Fase 3 arrancada** (armas y progresión)
+**Estado:** v1.0.0 · **primera release pública** (Fases 1-4). Lo que sigue son DLC.
 **Referencia:** `docs/MASTER_DOC.md` (v1.2) y `docs/V1.2_AUDIT.md`
 **Última revisión:** 2026-11-08
 

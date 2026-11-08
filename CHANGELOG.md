@@ -1,5 +1,38 @@
 # CHANGELOG · PTY Time
 
+## [1.0.0] — 2026-11-08 · Primera versión pública (Fases 3 y 4 cerradas)
+
+Release para el público: se completan la fabricación y la supervivencia de la Fase 3 y el
+sistema de crimen/reputación de la Fase 4, con contenido nuevo para que no queden huecos.
+
+### Añadido
+
+- **Fabricación (§5.4)**: taller con recetas (vendaje, botiquín y caja de balas), materiales
+  (trapo, chatarra, pólvora) que sueltan los enemigos y panel TALLER con la tecla F o desde
+  la mochila.
+- **Supervivencia (§7)**: hambre y resistencia; correr con SHIFT gasta resistencia, el
+  hambre baja con el tiempo, las latas lo recuperan y el HUD muestra ambos valores.
+- **Reputación real (§6)**: niveles DESCONOCIDO, CONOCIDO, RESPETADO y PADRINO con descuento
+  en la tienda (10-30 %), contactos que se ganan con misiones y suministros de regalo de los
+  contactos cuando cae el colapso.
+- **Tienda de Don Chen**: vende vendajes, latas, pólvora y chatarra por yapa.
+- **Dos misiones nuevas** para el post-colapso: **El último mandado** (medicinas para Doña
+  Nena) y **La avenida está tomada** (limpiar la avenida para Don Chen).
+- **Guardado v5** con supervivencia y contactos; migra desde v1, v2, v3 y v4.
+- **Pruebas**: 104/104 unitarias; QA de combate 37/37; regresión 20/20; producción 12/12.
+
+### Cambiado
+
+- HUD con hambre, resistencia, nivel, XP y etiqueta de reputación.
+- Los objetos de consumo pueden curar (vendaje/botiquín) o alimentar (lata).
+
+### Notas
+
+- **Versión pública**: https://pty-time.vercel.app (v1.0.0, 58 FPS en producción).
+- Las Fases 5-7 (apocalipsis ampliado, mundo de supervivencia, expansión de mapa y pulido)
+  quedan como **DLC/actualizaciones de contenido**.
+- Pendiente: audio, teléfono físico y CI.
+
 ## [0.5.0] — 2026-11-08 · Fase 3: arsenal y progresión
 
 Primer bloque de la Fase 3 del Documento Maestro: completar las armas del §5.2 y la

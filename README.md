@@ -1,4 +1,9 @@
-# PTY TIME
+# PTY TIME · v1.0
+
+**Primera versión pública** (Fases 1-4). Las siguientes fases del Documento Maestro
+(apocalipsis ampliado, refugios/vehículos, expansión de mapa y pulido) se publicarán
+como DLC/actualizaciones de contenido.
+
 
 Videojuego panameño de **acción y supervivencia zombi** en pixel art 2D con cámara
 cenital. Acompaña a **Calito**, un antihéroe de San Miguelito, desde la vida de barrio
@@ -11,12 +16,15 @@ teléfono.
 > [`docs/MASTER_DOC.md`](docs/MASTER_DOC.md) y la auditoría de adaptación, con lo que ya
 > existe y lo que falta, está en [`docs/V1.2_AUDIT.md`](docs/V1.2_AUDIT.md).
 
-## Estado de la demo actual (v0.5.0 · arsenal y progresión)
+## Release v1.0.0 (Fases 1-4)
 
-La versión jugable cierra el **MVP del Documento Maestro** y arranca la **Fase 3**:
+La versión pública incluye el MVP completo y las Fases 3 y 4:
 
-- **Arsenal**: pistola, puño, tubo, subfusil «LA MICRO», escopeta «LA RECORTADA» y rifle
-  «EL 22», cada uno con su munición. Las armas nuevas se recogen repartidas por el barrio.
+- **Arsenal**: pistola, puño, tubo, subfusil, escopeta y rifle con munición propia.
+- **Fabricación**: taller con vendajes, botiquines y munición a partir de materiales.
+- **Supervivencia**: hambre y resistencia; correr con SHIFT y comer latas.
+- **Reputación y tienda**: niveles de respeto, descuentos y la tienda de Don Chen.
+- **Misiones nuevas**: El último mandado y La avenida está tomada.
 - **Progresión**: experiencia por enemigos y misiones; niveles con +10 de vida máxima y
   +5 % de daño; el HUD muestra nivel y XP.
 - **Introducción narrativa** de Calito al empezar partida nueva.
@@ -43,7 +51,7 @@ con PTY Alerta y guardado local.
 > dirección dominante. Es una decisión de producto tomada en la auditoría para no
 > redibujar todo el arte; las diagonales quedan como mejora opcional futura.
 
-> **Estado de publicación:** https://pty-time.vercel.app sirve la **v0.5.0**.
+> **Estado de publicación:** https://pty-time.vercel.app sirve la **v1.0.0** (release pública).
 
 > **Evento sísmico:** el simulacro de terremoto es ficción dentro del videojuego. No es
 > una alerta real, no se conecta a sistemas de monitoreo y no sustituye información
@@ -57,7 +65,7 @@ con PTY Alerta y guardado local.
 
 ## Demo publicada
 
-- **Jugar:** https://pty-time.vercel.app (v0.5.0)
+- **Jugar:** https://pty-time.vercel.app (v1.0.0)
 - **Repositorio:** https://github.com/bampasspty/pty-time
 
 Desplegada en Vercel (proyecto `pty-time`). Verificación automatizada contra la URL
