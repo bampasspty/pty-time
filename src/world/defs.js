@@ -61,6 +61,10 @@ export const PROPS = Object.freeze({
   'car-red': { image: 'prop-car-red', width: 32, height: 24, solid: { width: 30, height: 16, gap: 2 } },
   'diablo-rojo': { image: 'prop-diablo-rojo', width: 64, height: 32, solid: { width: 62, height: 24, gap: 2 } },
   chancla: { image: 'prop-chancla', width: 12, height: 8, solid: null, pickup: true },
+  // Suministros del Slice B (no se colocan en el mapa: los instancia la escena).
+  vendaje: { image: 'prop-vendaje', width: 16, height: 16, solid: null, pickup: true },
+  lata: { image: 'prop-lata', width: 16, height: 16, solid: null, pickup: true },
+  caja: { image: 'prop-caja', width: 16, height: 16, solid: null, pickup: true },
 });
 
 export const PLAYER_VARIANTS = Object.freeze([

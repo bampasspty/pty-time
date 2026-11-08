@@ -1,5 +1,57 @@
 # CHANGELOG · PTY Time
 
+## [0.4.0] — 2026-11-07 · Slice B: el colapso (MVP del Documento Maestro cerrado)
+
+Cierra el MVP del §18: introducción narrativa, primera infección, un tipo de zombi,
+transición al apocalipsis, inventario básico y guardado v3.
+
+### Añadido
+
+- **Introducción narrativa de Calito** (`src/data/story.js`): secuencia de tres páginas
+  al empezar partida nueva (San Miguelito → Calito → el barrio).
+- **Secuencia del colapso con PTY Alerta ficticia**: tres páginas con disclaimer visible
+  («Alerta ficticia del videojuego. No es un aviso oficial…»), banner **EL COLAPSO** y
+  transición de mundo.
+- **Primer tipo de zombi** (infectado): `src/data/zombies.js`, `src/entities/Enemy`
+  reutilizado y nueva IA en `src/systems/EnemyAI.js` — los zombis detectan y persiguen
+  sin línea de visión, atacan aunque no te vean y cada uno cojea a distinta velocidad.
+- **Spawn de la horda**: 8 infectados en el mapa + 2 cerca de Calito al caer el colapso;
+  los matones huyen y desaparecen.
+- **Capítulo III · El colapso** (`src/data/missions.js`): sobrevivir a 5 infectados y
+  llegar a la fonda de Doña Nena; al completarlo el mundo queda en `apocalipsis`.
+- **Inventario básico** (`src/data/items.js`, `src/systems/InventorySystem.js`):
+  vendajes, latas y cajas de balas; 12 espacios con apilado; panel de mochila con
+  botones USAR VENDAJE / ABRIR CAJA.
+- **Suministros en el mapa**: 5 puntos de recogida que reaparecen solo si no se tomaron
+  (guardado en `world.suppliesTaken`).
+- **Guardado v3 con migración v1/v2 → v3**: agrega `world` (fase barrio/colapso/
+  apocalipsis), `story` (intro y colapso vistos) e `inventory`.
+- **Controles**: `I` o `TAB` abren la mochila; botón táctil **MOCHILA**.
+- **Arte**: hoja del infectado (48×96) y objetos de suministro 16×16; paleta ampliada con
+  dos tonos de piel verdosa documentados.
+- **Pruebas**: 73/73 unitarias; QA de combate ampliado a 30/30 (colapso, horda, refugio,
+  inventario, guardado v3, táctil) y regresión 20/20.
+
+### Cambiado
+
+- HUD con indicador de mochila y fase del mundo.
+- Los diálogos de Nena y Pipe reaccionan al capítulo del colapso.
+- La primera partida abre con la introducción narrativa; CONTINUAR no la repite.
+
+### Corregido
+
+- La codificación UTF-8 de archivos tocados por scripts de parcheo se restauró y se
+  verificó que no queden caracteres rotos.
+- La misión criminal ya no puede quedar colgada: al terminarla se dispara el colapso
+  aunque se recargue la página antes de la secuencia.
+
+### Notas
+
+- La secuencia del colapso es ficción y está separada de la información real de
+  emergencia (simulacro sísmico educativo incluido).
+- Pendiente: teléfono físico, audio, más armas y el resto de los sistemas del documento.
+- Desplegado en https://pty-time.vercel.app (build de esta versión).
+
 ## [0.3.0] — 2026-11-07 · Slice A cerrado
 
 Entrega que completa el Slice A de la dirección v1.2 y se despliega a producción.

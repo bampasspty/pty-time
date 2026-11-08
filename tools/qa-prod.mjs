@@ -43,7 +43,7 @@ const title = await page.evaluate(() => {
   const t = window.__PTY_GAME__.scene.getScene('Title');
   return { footer: t.footer.text, tagline: t.tagline.text, hasSave: t.hasSave };
 });
-check('producción sirve la v0.3', title.footer.includes('v0.3'), JSON.stringify(title));
+check('producción sirve la v0.4', title.footer.includes('v0.4'), JSON.stringify(title));
 check('tagline de Calito', title.tagline.includes('Calito'), title.tagline);
 await page.screenshot({ path: `${OUT}/prod-title.png` });
 
@@ -58,6 +58,23 @@ check('pantalla de Calito (apariencia)', character.title === 'CALITO' && charact
 await page.evaluate(() => window.__PTY_GAME__.scene.getScene('Character').enterGame());
 await sceneReady('Game');
 await page.waitForTimeout(1500);
+
+const intro = await page.evaluate(() => {
+  const ui = window.__PTY_GAME__.scene.getScene('UI');
+  return { open: Boolean(ui?.modal?.isOpen), title: ui?.modal?.title?.text ?? '' };
+});
+check('intro narrativa en producción', intro.open === true && intro.title.includes('SAN MIGUELITO'), JSON.stringify(intro));
+await page.screenshot({ path: `${OUT}/prod-intro.png` });
+for (let i = 0; i < 10; i++) {
+  const open = await page.evaluate(() => Boolean(window.__PTY_GAME__?.scene?.getScene('UI')?.modal?.isOpen));
+  if (!open) break;
+  await page.evaluate(() => {
+    const ui = window.__PTY_GAME__.scene.getScene('UI');
+    if (ui.modal.isOpen) ui.modal.handleButton(0);
+  });
+  await page.waitForTimeout(200);
+}
+await page.waitForTimeout(500);
 
 const game = await page.evaluate(() => {
   const gs = window.__PTY_GAME__.scene.getScene('Game');
@@ -118,6 +135,16 @@ await lowPage.waitForFunction(
   { timeout: 30000 },
 );
 await lowPage.waitForTimeout(2000);
+for (let i = 0; i < 10; i++) {
+  const open = await lowPage.evaluate(() => Boolean(window.__PTY_GAME__?.scene?.getScene('UI')?.modal?.isOpen));
+  if (!open) break;
+  await lowPage.evaluate(() => {
+    const ui = window.__PTY_GAME__.scene.getScene('UI');
+    if (ui.modal.isOpen) ui.modal.handleButton(0);
+  });
+  await lowPage.waitForTimeout(220);
+}
+await lowPage.waitForTimeout(400);
 
 const lowEnd = await lowPage.evaluate(
   () =>

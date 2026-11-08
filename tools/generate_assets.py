@@ -8,7 +8,7 @@ docs/ASSETS_REPORT.md con el inventario.
 
 Reglas:
 - pixel art puro (cada pixel se escribe a mano, sin antialiasing),
-- paleta cerrada del contrato (+ 3 variaciones minimas justificadas),
+- paleta cerrada del contrato (+ variaciones minimas justificadas),
 - perspectiva 3/4 top-down, luz desde arriba-izquierda, outline #1b1b2b,
 - PNG RGBA con compresion, presupuesto total < 1.2 MB.
 
@@ -78,6 +78,7 @@ TAXI = _rgb("#f7c948")
 #   - COURT / COURT_D: cancha sintetica verde-teal (la celeste parecia piscina).
 #   - OFFWHITE: blanco hueso para franjas de cruce y lineas de cancha.
 #   - LAVENDER: vestido de Yolanda (evita que el coral parezca piel).
+#   - ZOMBIE_SKIN / ZOMBIE_SKIN_D: piel verdosa de los infectados (Slice B).
 JOINT = _rgb("#9a9a9a")
 ZINC_DARK = _rgb("#6e7a8f")
 TIRE = _rgb("#26262f")
@@ -85,6 +86,8 @@ COURT = _rgb("#2f7f6f")
 COURT_D = _rgb("#27685c")
 OFFWHITE = _rgb("#e4e4e4")
 LAVENDER = _rgb("#9b7ede")
+ZOMBIE_SKIN = _rgb("#9db88a")
+ZOMBIE_SKIN_D = _rgb("#6f8a61")
 
 PALETTE = {
     "ink": INK, "shadow": SHADOW, "skin_l": SKIN_L, "skin_m": SKIN_M,
@@ -100,6 +103,7 @@ PALETTE = {
     "joint": JOINT, "zinc_dark": ZINC_DARK, "tire": TIRE,
     "court": COURT, "court_d": COURT_D, "offwhite": OFFWHITE,
     "lavender": LAVENDER,
+    "zombie_skin": ZOMBIE_SKIN, "zombie_skin_d": ZOMBIE_SKIN_D,
 }
 ALLOWED_COLORS = frozenset(PALETTE.values())
 
@@ -391,6 +395,15 @@ ENEMIES = {
         skin=SKIN_D, skin_hi=SKIN_M, skin_sh=HAIR_BR,
         hair=HAIR_K, shirt=PTY_RED, pants=PANTS_D,
         mustache=True, shoes=SHADOW,
+    ),
+}
+
+# Zombis del Slice B. Misma hoja 48x96; piel verdosa y ropa sucia.
+ZOMBIES = {
+    "infectado": _spec(
+        skin=ZOMBIE_SKIN, skin_hi=WALL_MINT, skin_sh=ZOMBIE_SKIN_D,
+        hair=HAIR_K, hair_hi=SHADOW, shirt=ZINC, pants=PANTS_D,
+        shoes=SHADOW, glasses=True,
     ),
 }
 
@@ -2514,6 +2527,47 @@ PORTRAITS += [
     ("portrait-player-m", dict(BODIES["m"], shirt=WHITE)),
     ("portrait-player-f", dict(BODIES["f"], shirt=WHITE)),
 ]
+# ==========================================================================
+# OBJETOS DE SUMINISTRO 16x16 (Slice B)
+# ==========================================================================
+def draw_vendaje():
+    im = new(16, 16)
+    rect(im, 2, 4, 12, 8, WHITE)
+    hline(im, 2, 6, 11, OFFWHITE)
+    hline(im, 2, 9, 11, ACERA_L)
+    rect_outline(im, 2, 4, 12, 8, INK)
+    # cruz roja
+    rect(im, 9, 5, 4, 6, WHITE)
+    rect(im, 10, 6, 2, 4, PTY_RED)
+    rect(im, 9, 7, 4, 2, PTY_RED)
+    return outline(im)
+
+
+def draw_lata():
+    im = new(16, 16)
+    rect(im, 4, 4, 8, 10, ZINC)
+    rect(im, 4, 4, 8, 2, OFFWHITE)
+    hline(im, 4, 7, 9, PTY_RED)
+    hline(im, 4, 9, 9, PTY_RED)
+    rect(im, 4, 12, 8, 2, ZINC_DARK)
+    rect_outline(im, 4, 4, 8, 10, INK)
+    put(im, 5, 11, TAXI)
+    return outline(im)
+
+
+def draw_caja():
+    im = new(16, 16)
+    rect(im, 2, 5, 12, 9, ZINC_RUST)
+    hline(im, 2, 5, 13, ZINC_L)
+    vline(im, 8, 6, 12, INK)
+    rect_outline(im, 2, 5, 12, 9, INK)
+    # balas asomando
+    rect(im, 4, 3, 2, 3, TAXI)
+    rect(im, 7, 3, 2, 3, TAXI)
+    rect(im, 10, 3, 2, 3, TAXI)
+    return outline(im)
+
+
 PROP_DRAWERS = [
     ("palm", draw_palm, (32, 48)),
     ("mango-tree", draw_mango_tree, (32, 40)),
@@ -2534,6 +2588,9 @@ PROP_DRAWERS = [
     ("car-red", lambda: draw_car(PTY_RED), (32, 24)),
     ("diablo-rojo", draw_diablo_rojo, (64, 32)),
     ("chancla", draw_chancla, (12, 8)),
+    ("vendaje", draw_vendaje, (16, 16)),
+    ("lata", draw_lata, (16, 16)),
+    ("caja", draw_caja, (16, 16)),
 ]
 BUILDING_SIZES = {
     "house-a": (80, 64), "house-b": (64, 64), "house-c": (96, 80),
@@ -2560,6 +2617,8 @@ def expected_files():
         exp[f"characters/npc-{nid}.png"] = (48, 96, True)
     for eid in ENEMIES:
         exp[f"characters/enemy-{eid}.png"] = (48, 96, True)
+    for zid in ZOMBIES:
+        exp[f"characters/enemy-{zid}.png"] = (48, 96, True)
     for name, _spec in PORTRAITS:
         exp[f"ui/portraits/{name}.png"] = (32, 32, True)
     for name, size in BUILDING_SIZES.items():
@@ -2580,6 +2639,8 @@ def generate_assets():
         save_png(character_sheet(spec), f"characters/npc-{nid}.png")
     for eid, spec in ENEMIES.items():
         save_png(character_sheet(spec), f"characters/enemy-{eid}.png")
+    for zid, spec in ZOMBIES.items():
+        save_png(character_sheet(spec), f"characters/enemy-{zid}.png")
     for name, spec in PORTRAITS:
         save_png(draw_portrait(spec), f"ui/portraits/{name}.png")
     for name, fn in BUILDINGS.items():
@@ -2592,8 +2653,9 @@ def generate_assets():
 
 
 def validate(expected):
-    n_expected = (1 + len(PLAYERS) + len(NPCS) + len(ENEMIES) + len(PORTRAITS)
-                  + len(BUILDING_SIZES) + len(PROP_DRAWERS) + len(UI_ICONS) + 1)
+    n_expected = (1 + len(PLAYERS) + len(NPCS) + len(ENEMIES) + len(ZOMBIES)
+                  + len(PORTRAITS) + len(BUILDING_SIZES) + len(PROP_DRAWERS)
+                  + len(UI_ICONS) + 1)
     assert len(expected) == n_expected, "faltan archivos en la tabla de esperados"
     errors = []
     total = 0
@@ -2753,6 +2815,7 @@ def main():
                  .replace("green", "grn").upper())
         players.append((short, character_sheet(spec)))
     npcs = [(n, character_sheet(s)) for n, s in NPCS.items()]
+    npcs += [(f"zombi-{n}", character_sheet(s)) for n, s in ZOMBIES.items()]
     portraits = [(n.replace("portrait-", ""), draw_portrait(s))
                  for n, s in PORTRAITS]
     buildings = [(n, fn()) for n, fn in BUILDINGS.items()]

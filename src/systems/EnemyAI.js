@@ -64,21 +64,29 @@ export function stepAI(ai, ctx) {
   const py = Number(player?.y) || 0;
   const dist = Math.hypot(px - x, py - y);
   const alerted = isAlerted(ai, now);
+  // Los zombis huelen y oyen: detectan y persiguen sin línea de visión.
+  const sensesThroughWalls = def.behavior === 'zombie';
+  const seesPlayer = hasLineOfSight || sensesThroughWalls;
 
-  if (ai.state === 'idle' && ((dist <= def.detectRange && hasLineOfSight) || alerted)) {
+  if (ai.state === 'idle' && ((dist <= def.detectRange && seesPlayer) || alerted)) {
     ai.state = 'chase';
   }
 
   // Si ve al jugador y este se escapa demasiado, deja de perseguir. Si perdió
   // la vista, sigue investigando la última posición conocida.
-  if ((ai.state === 'chase' || ai.state === 'attack') && dist > def.loseRange && !alerted && hasLineOfSight) {
+  if (
+    (ai.state === 'chase' || ai.state === 'attack') &&
+    dist > def.loseRange &&
+    !alerted &&
+    seesPlayer
+  ) {
     ai.state = 'idle';
     ai.wanderX = ai.homeX;
     ai.wanderY = ai.homeY;
     ai.nextThink = now + 600;
   }
 
-  if (ai.state === 'attack' && (dist > def.attackRange * 1.25 || !hasLineOfSight)) {
+  if (ai.state === 'attack' && (dist > def.attackRange * 1.25 || !seesPlayer)) {
     ai.state = 'chase';
   }
 
@@ -105,8 +113,9 @@ export function stepAI(ai, ctx) {
   }
 
   // chase / attack: si ve al jugador, guarda su posición; si no, investiga la
-  // última posición conocida y se rinde después de un rato.
-  if (hasLineOfSight) {
+  // última posición conocida y se rinde después de un rato. Los zombis siempre
+  // van directo hacia el jugador (no razonan, solo hambre).
+  if (seesPlayer) {
     ai.lastSeenX = px;
     ai.lastSeenY = py;
     ai.lostSightAt = 0;
@@ -116,15 +125,15 @@ export function stepAI(ai, ctx) {
     if (!ai.lostSightAt) ai.lostSightAt = now;
   }
 
-  const targetX = hasLineOfSight ? px : ai.lastSeenX;
-  const targetY = hasLineOfSight ? py : ai.lastSeenY;
+  const targetX = seesPlayer ? px : ai.lastSeenX;
+  const targetY = seesPlayer ? py : ai.lastSeenY;
   const targetDist = Math.hypot(targetX - x, targetY - y);
   out.facing = faceTo(ai, targetX - x, targetY - y);
 
   if (ai.state === 'chase') {
-    if (hasLineOfSight && dist <= def.attackRange) {
+    if (seesPlayer && dist <= def.attackRange) {
       ai.state = 'attack';
-    } else if (!hasLineOfSight && (targetDist <= 6 || now - ai.lostSightAt > 6000)) {
+    } else if (!seesPlayer && (targetDist <= 6 || now - ai.lostSightAt > 6000)) {
       ai.state = 'idle';
       ai.lostSightAt = 0;
     } else {
@@ -137,7 +146,7 @@ export function stepAI(ai, ctx) {
   }
 
   if (ai.state === 'attack') {
-    if (!hasLineOfSight) {
+    if (!seesPlayer) {
       ai.state = 'chase';
     } else {
       if (now >= ai.cooldownUntil) {

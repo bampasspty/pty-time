@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BUILDINGS, PROPS, PLAYER_VARIANTS, NPC_IDS } from '../world/defs.js';
 import { ENEMY_IDS } from '../data/enemies.js';
+import { ZOMBIE_IDS } from '../data/zombies.js';
 import { events } from '../systems/EventBus.js';
 
 const UI_IMAGES = [
@@ -51,6 +52,13 @@ export class BootScene extends Phaser.Scene {
     }
 
     for (const id of ENEMY_IDS) {
+      this.load.spritesheet(`enemy-${id}`, `assets/characters/enemy-${id}.png`, {
+        frameWidth: 16,
+        frameHeight: 24,
+      });
+    }
+
+    for (const id of ZOMBIE_IDS) {
       this.load.spritesheet(`enemy-${id}`, `assets/characters/enemy-${id}.png`, {
         frameWidth: 16,
         frameHeight: 24,
@@ -175,6 +183,7 @@ export class BootScene extends Phaser.Scene {
       ...PLAYER_VARIANTS.map((v) => `player-${v.id}`),
       ...NPC_IDS.map((id) => `npc-${id}`),
       ...ENEMY_IDS.map((id) => `enemy-${id}`),
+      ...ZOMBIE_IDS.map((id) => `enemy-${id}`),
     ];
 
     for (const key of keys) {

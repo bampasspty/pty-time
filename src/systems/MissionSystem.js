@@ -125,11 +125,13 @@ export class MissionSystem {
   getDialogueContext() {
     const mandado = this.states['el-mandado'];
     const crime = this.states['limpia-la-cancha'];
+    const collapse = this.states['el-colapso'];
     return {
       step: mandado.step,
       hasChancla: mandado.flags.hasChancla,
       drillUnlocked: this.drillUnlocked,
       crimeStep: crime.step,
+      collapseStep: collapse.step,
       kills: crime.kills,
       targetKills: MISSIONS['limpia-la-cancha'].killTarget.count,
     };

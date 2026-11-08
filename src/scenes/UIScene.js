@@ -146,6 +146,8 @@ export class UIScene extends Phaser.Scene {
     this.reloadButton.container.setVisible(false);
     this.weaponButton = this.createTextButton(0, 0, 60, 26, 'ARMA', () => events.emit('ui:weapon'), false, 7);
     this.weaponButton.container.setVisible(false);
+    this.mochilaButton = this.createTextButton(0, 0, 78, 26, 'MOCHILA', () => events.emit('ui:inventory'), false, 7);
+    this.mochilaButton.container.setVisible(false);
   }
 
   createCircleButton(x, y, radius, label, onClick, onDown, onUp, fontSize = 8) {
@@ -245,6 +247,8 @@ export class UIScene extends Phaser.Scene {
     this.onHelp = () => this.openHelp();
     this.onBusy = () => this.refreshControls();
     this.onPlayerDown = () => this.showPlayerDown();
+    this.onStoryRequest = (data) => this.showStory(data);
+    this.onInventoryOpen = (data) => this.showInventory(data);
 
     events.on('hud:update', this.onHudUpdate);
     events.on('hud:toast', this.onToast);
@@ -258,6 +262,8 @@ export class UIScene extends Phaser.Scene {
     events.on('ui:help', this.onHelp);
     events.on('ui:busy', this.onBusy);
     events.on('player:down', this.onPlayerDown);
+    events.on('story:request', this.onStoryRequest);
+    events.on('inventory:open', this.onInventoryOpen);
 
     this.input.on('pointerdown', this.onPointerDown, this);
     this.input.on('pointermove', this.onPointerMove, this);
@@ -275,6 +281,10 @@ export class UIScene extends Phaser.Scene {
     }
     if (this.dialogue.isOpen) {
       if (code === 'KeyE' || code === 'Space' || code === 'Enter') this.dialogue.advance();
+      return;
+    }
+    if ((code === 'KeyI' || code === 'Tab') && !this.drillState?.active) {
+      events.emit('ui:inventory');
       return;
     }
     if (code === 'Escape') {
@@ -477,6 +487,7 @@ export class UIScene extends Phaser.Scene {
     this.fireButton.container.setVisible(showCombat);
     this.reloadButton.container.setVisible(showCombat);
     this.weaponButton.container.setVisible(showCombat);
+    this.mochilaButton.container.setVisible(showCombat);
     const showDrill = this.hudState?.drillUnlocked && !busy && !this.drillState?.active && !this.dialogue?.isOpen;
     this.drillButton.container.setVisible(Boolean(showDrill));
     this.crouchButton.container.setVisible(Boolean(this.drillState?.active && this.drillState?.showCrouch));
@@ -497,6 +508,7 @@ export class UIScene extends Phaser.Scene {
       bullets: [
         'WASD o flechas: caminar. En el teléfono usa el joystick.',
         'CLIC izquierdo o J: disparar. R: recargar. Q: cambiar de arma.',
+        'I o TAB: abrir la mochila. En el tel\u00e9fono, bot\u00f3n MOCHILA.',
         'E, ESPACIO o el botón HABLAR: conversar y avanzar diálogos.',
         'C o CUBRIRSE: agacharte y protegerte.',
         'Sigue la estrella amarilla para saber con quién hablar o dónde pelear.',
@@ -580,6 +592,61 @@ export class UIScene extends Phaser.Scene {
     this.drillProgress.setSize((panelW - 34) * clamp(this.drillState?.progress ?? 0, 0, 1), 8);
   }
 
+  // ------------------------------------------------------------- Slice B
+
+  showStory({ id, pages }) {
+    if (!Array.isArray(pages) || pages.length === 0) return;
+    this.storyQueue = { id, pages: [...pages], index: 0 };
+    this.showStoryPage();
+  }
+
+  showStoryPage() {
+    const queue = this.storyQueue;
+    if (!queue) return;
+    if (queue.index >= queue.pages.length) {
+      this.storyQueue = null;
+      events.emit('story:finished', { id: queue.id });
+      return;
+    }
+    const page = queue.pages[queue.index];
+    const last = queue.index === queue.pages.length - 1;
+    this.modal.open({
+      title: page.title,
+      body: page.body,
+      bullets: page.bullets ?? [],
+      disclaimer: page.disclaimer,
+      buttons: [{ label: last ? 'ENTENDIDO' : 'SIGUIENTE', value: 'next', primary: true }],
+      dismissible: false,
+      onClose: () => {
+        queue.index += 1;
+        this.time.delayedCall(70, () => this.showStoryPage());
+        this.refreshControls();
+      },
+    });
+  }
+
+  showInventory(data) {
+    const items = Array.isArray(data.items) ? data.items : [];
+    const bullets = items.length
+      ? items.map((item) => item.name + ' x' + item.qty)
+      : ['La mochila est\u00e1 vac\u00eda.'];
+    const buttons = [];
+    if (data.canHeal) buttons.push({ label: 'USAR VENDAJE', value: 'heal', primary: true });
+    if (data.canAmmo) buttons.push({ label: 'ABRIR CAJA', value: 'ammo', primary: !data.canHeal });
+    buttons.push({ label: 'CERRAR', value: 'close', primary: buttons.length === 0 });
+    this.modal.open({
+      title: 'MOCHILA ' + (data.size ?? 0) + '/' + (data.capacity ?? 12),
+      bullets,
+      buttons,
+      dismissible: true,
+      onButton: (value) => {
+        if (value === 'heal') events.emit('ui:use-item', { id: 'vendaje' });
+        if (value === 'ammo') events.emit('ui:use-item', { id: 'balas9' });
+      },
+      onClose: () => this.refreshControls(),
+    });
+  }
+
   showMissionComplete(data) {
     const reward = data.reward?.coins ?? 0;
     const bullets = Array.isArray(data.bullets) && data.bullets.length
@@ -642,6 +709,7 @@ export class UIScene extends Phaser.Scene {
     this.positionCircleButton(this.fireButton, width - 58, height - 138);
     this.positionCircleButton(this.reloadButton, width - 126, height - 104);
     this.weaponButton.container.setPosition(width - 130, height - 168);
+    this.mochilaButton.container.setPosition(width - 196, height - 168);
     this.helpButton.container.setPosition(width - 30, 30);
     this.drillButton.container.setPosition(width - 70, 72);
     this.coinsText.setPosition(width - 62, 24);
@@ -671,6 +739,8 @@ export class UIScene extends Phaser.Scene {
     events.off('ui:help', this.onHelp);
     events.off('ui:busy', this.onBusy);
     events.off('player:down', this.onPlayerDown);
+    events.off('story:request', this.onStoryRequest);
+    events.off('inventory:open', this.onInventoryOpen);
     this.dialogue?.destroy();
     this.modal?.destroy();
   }

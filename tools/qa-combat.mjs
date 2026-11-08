@@ -47,6 +47,8 @@ async function enterGame() {
   await page.evaluate(() => window.__PTY_GAME__.scene.getScene('Character').enterGame());
   await sceneReady('Game');
   await page.waitForTimeout(1500);
+  await dismissStory();
+  await page.waitForTimeout(400);
 }
 
 const inGame = (fn, arg) =>
@@ -59,6 +61,18 @@ const inGame = (fn, arg) =>
     },
     { source: fn.toString(), arg },
   );
+
+async function dismissStory() {
+  for (let i = 0; i < 14; i++) {
+    const open = await page.evaluate(() => Boolean(window.__PTY_GAME__?.scene?.getScene('UI')?.modal?.isOpen));
+    if (!open) return;
+    await page.evaluate(() => {
+      const ui = window.__PTY_GAME__.scene.getScene('UI');
+      if (ui.modal.isOpen) ui.modal.handleButton(0);
+    });
+    await page.waitForTimeout(200);
+  }
+}
 
 async function closeModal() {
   await page.evaluate(() => {
@@ -187,7 +201,27 @@ const finish = await inGame((gs) => {
   };
 });
 await closeModal();
-check('reportCrime paga 60 y da 10 de reputación', finish.step === 'done' && finish.coins === 85 && finish.rep === 10, JSON.stringify(finish));
+check('reportCrime paga 60 y da 10 de reputacion', finish.step === 'done' && finish.coins === 85 && finish.rep === 10, JSON.stringify(finish));
+
+// ------------------------------------------ Slice B: colapso, horda y refugio
+await page.waitForTimeout(1400);
+await page.screenshot({ path: OUT + '/combat-pty-alerta.png' });
+await dismissStory();
+await page.waitForTimeout(500);
+const collapse = await inGame((gs) => ({
+  phase: gs.phase,
+  missionStep: gs.mission.getState('el-colapso').step,
+  zombies: gs.enemies.filter((e) => e.def.behavior === 'zombie' && !e.dead).length,
+  supplies: gs.supplies.length,
+  introSeen: gs.save.story.introSeen,
+}));
+check(
+  'el colapso arranca tras la mision criminal',
+  collapse.phase === 'colapso' && collapse.missionStep === 'survive' && collapse.zombies >= 5 && collapse.introSeen === true,
+  JSON.stringify(collapse),
+);
+check('los suministros aparecen en el mapa', collapse.supplies >= 3, JSON.stringify(collapse));
+await page.screenshot({ path: OUT + '/combat-colapso.png' });
 
 // ------------------------------------------------------ daño, KO y reaparición
 const down = await inGame((gs) => {
@@ -203,7 +237,70 @@ await closeModal();
 const respawn = await inGame((gs) => ({ ko: gs.ko, hp: gs.combat.hp }));
 check('reaparece con vida completa', respawn.ko === false && respawn.hp === 100, JSON.stringify(respawn));
 
-// -------------------------------------------------------- guardado v2 en disco
+// -------------------------------------- Slice B: horda, refugio e inventario
+const horde = await inGame((gs) => {
+  const fake = { damage: 999, kill() {} };
+  const zombies = gs.enemies.filter((e) => e.def.behavior === 'zombie' && !e.dead);
+  for (const zombie of zombies.slice(0, 5)) gs.hitEnemy(fake, zombie);
+  return {
+    step: gs.mission.getState('el-colapso').step,
+    kills: gs.mission.getState('el-colapso').kills,
+    defeated: gs.combat.defeats,
+  };
+});
+check('cinco infectados avanzan al refugio', horde.step === 'refugio' && horde.kills === 5, JSON.stringify(horde));
+
+await inGame((gs) => {
+  const nena = gs.npcs.find((n) => n.npcId === 'nena');
+  gs.player.setPosition(nena.x, nena.y + 24);
+  gs.player.body.reset(nena.x, nena.y + 24);
+});
+await page.waitForTimeout(900);
+const shelter = await inGame((gs) => ({
+  step: gs.mission.getState('el-colapso').step,
+  phase: gs.phase,
+  done: gs.mission.getState('el-colapso').completed,
+}));
+check('llegar a la fonda cierra el capitulo y deja el apocalipsis', shelter.step === 'done' && shelter.phase === 'apocalipsis', JSON.stringify(shelter));
+await closeModal();
+
+const inventory = await inGame((gs) => {
+  const before = gs.inventory.size;
+  const vendajesBeforePickup = gs.inventory.count('vendaje');
+  if (gs.supplies.length) gs.pickupSupply(gs.supplies[0]);
+  const after = gs.inventory.size;
+  const vendajesAfterPickup = gs.inventory.count('vendaje');
+  gs.combat.damage(40);
+  const hpHurt = gs.combat.hp;
+  const vendajesBefore = gs.inventory.count('vendaje');
+  gs.useInventoryItem('vendaje');
+  return {
+    before,
+    after,
+    vendajesBeforePickup,
+    vendajesAfterPickup,
+    hpHurt,
+    hpAfter: gs.combat.hp,
+    vendajesBefore,
+    vendajesAfter: gs.inventory.count('vendaje'),
+  };
+});
+check(
+  'recoger suministros llena la mochila',
+  inventory.vendajesAfterPickup > inventory.vendajesBeforePickup || inventory.after > inventory.before,
+  JSON.stringify(inventory),
+);
+check('usar un vendaje cura y gasta el objeto', inventory.hpAfter > inventory.hpHurt && inventory.vendajesAfter === inventory.vendajesBefore - 1, JSON.stringify(inventory));
+
+const inventoryUi = await inGame((gs) => {
+  gs.openInventory();
+  const ui = window.__PTY_GAME__.scene.getScene('UI');
+  return { open: ui.modal.isOpen, title: ui.modal.title.text };
+});
+check('la mochila abre con su panel', inventoryUi.open === true && inventoryUi.title.includes('MOCHILA'), JSON.stringify(inventoryUi));
+await closeModal();
+
+// -------------------------------------------------------- guardado v3 en disco
 const saved = await inGame((gs) => {
   gs.persist();
   const raw = JSON.parse(window.localStorage.getItem('pty-time-save-v1'));
@@ -211,13 +308,24 @@ const saved = await inGame((gs) => {
     version: raw.version,
     mandado: raw.missions?.['el-mandado']?.step,
     crime: raw.missions?.['limpia-la-cancha']?.step,
+    collapse: raw.missions?.['el-colapso']?.step,
+    phase: raw.world?.phase,
+    story: raw.story,
+    inventory: raw.inventory?.slots,
     coins: raw.wallet?.coins,
     defeats: raw.combat?.defeats,
   };
 });
 check(
-  'guardado v2 con misiones, yapa y derrotas',
-  saved.version === 2 && saved.mandado === 'done' && saved.crime === 'done' && saved.coins === 85 && saved.defeats === 3,
+  'guardado v3 con colapso, historia e inventario',
+  saved.version === 3 &&
+    saved.mandado === 'done' &&
+    saved.crime === 'done' &&
+    saved.collapse === 'done' &&
+    saved.phase === 'apocalipsis' &&
+    saved.story?.collapseSeen === true &&
+    Array.isArray(saved.inventory) &&
+    saved.coins === 85,
   JSON.stringify(saved),
 );
 
@@ -241,6 +349,16 @@ await mpage.waitForTimeout(400);
 await mpage.evaluate(() => window.__PTY_GAME__.scene.getScene('Character').enterGame());
 await mpage.waitForFunction(() => window.__PTY_GAME__?.scene?.getScenes(true)?.some((s) => s.scene.key === 'Game'), { timeout: 20000 });
 await mpage.waitForTimeout(1400);
+for (let i = 0; i < 10; i++) {
+  const open = await mpage.evaluate(() => Boolean(window.__PTY_GAME__?.scene?.getScene('UI')?.modal?.isOpen));
+  if (!open) break;
+  await mpage.evaluate(() => {
+    const ui = window.__PTY_GAME__.scene.getScene('UI');
+    if (ui.modal.isOpen) ui.modal.handleButton(0);
+  });
+  await mpage.waitForTimeout(200);
+}
+await mpage.waitForTimeout(500);
 
 const mobileUi = await mpage.evaluate(() => {
   const ui = window.__PTY_GAME__.scene.getScene('UI');
@@ -248,13 +366,15 @@ const mobileUi = await mpage.evaluate(() => {
     fire: ui.fireButton.container.visible,
     reload: ui.reloadButton.container.visible,
     weapon: ui.weaponButton.container.visible,
+    mochila: ui.mochilaButton.container.visible,
     joystick: ui.joyBase.visible,
     firePos: { x: ui.fireButton.container.x, y: ui.fireButton.container.y },
+    mochilaPos: { x: ui.mochilaButton.container.x, y: ui.mochilaButton.container.y },
   };
 });
 check(
   'controles táctiles de combate visibles',
-  mobileUi.fire && mobileUi.reload && mobileUi.weapon && mobileUi.joystick,
+  mobileUi.fire && mobileUi.reload && mobileUi.weapon && mobileUi.mochila && mobileUi.joystick,
   JSON.stringify(mobileUi),
 );
 
@@ -283,7 +403,14 @@ await mpage.waitForTimeout(250);
 const mobileWeapon = await mpage.evaluate(
   () => window.__PTY_GAME__.scene.getScene('Game').combat.weaponId,
 );
-check('tocar ARMA cambia de arma en el teléfono', mobileWeapon === 'puno', mobileWeapon);
+check('tocar ARMA cambia de arma en el telefono', mobileWeapon === 'puno', mobileWeapon);
+await mpage.touchscreen.tap(mobileUi.mochilaPos.x, mobileUi.mochilaPos.y);
+await mpage.waitForTimeout(300);
+const mobileMochila = await mpage.evaluate(() => {
+  const ui = window.__PTY_GAME__.scene.getScene('UI');
+  return ui.modal.isOpen ? ui.modal.title.text : '';
+});
+check('tocar MOCHILA abre el inventario en el telefono', mobileMochila.includes('MOCHILA'), mobileMochila);
 await mpage.screenshot({ path: `${OUT}/combat-mobile.png` });
 
 // frame rate aproximado en el mapa con enemigos

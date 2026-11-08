@@ -25,6 +25,9 @@ const STEPS = new Set([
 // no está disponible; 'unknown' = contexto incompleto o inválido.
 const CRIME_STEPS = new Set(['locked', 'inactive', 'deal', 'report', 'done']);
 
+// Paso del capítulo del colapso (Slice B).
+const COLLAPSE_STEPS = new Set(['locked', 'inactive', 'survive', 'refugio', 'done']);
+
 // Una "página" de diálogo.
 const page = (speaker, text) => ({ speaker, text });
 
@@ -40,6 +43,7 @@ function normalizeContext(ctx) {
     hasChancla: raw.hasChancla === true,
     drillUnlocked: raw.drillUnlocked === true,
     crimeStep: CRIME_STEPS.has(raw.crimeStep) ? raw.crimeStep : 'unknown',
+    collapseStep: COLLAPSE_STEPS.has(raw.collapseStep) ? raw.collapseStep : 'unknown',
     kills: Number.isFinite(raw.kills) ? Math.max(0, Math.floor(raw.kills)) : 0,
   };
 }
@@ -94,6 +98,27 @@ function nenaDialogue(ctx) {
   }
 
   if (ctx.step === 'done') {
+    if (ctx.collapseStep === 'survive') {
+      return reply([
+        page(speaker, '¡Mijo, no salgas! Esa gente no está bien. Se les ve en la cara.'),
+        page(speaker, 'Tápate la boca si te les acercas. Y corre para acá cuando puedas.'),
+      ]);
+    }
+
+    if (ctx.collapseStep === 'refugio') {
+      return reply([
+        page(speaker, '¡Vení para acá, mijo! Cerré la fonda y corrí las mesas contra la puerta.'),
+        page(speaker, 'Date prisa, que allá afuera no está para nadie.'),
+      ]);
+    }
+
+    if (ctx.collapseStep === 'done') {
+      return reply([
+        page(speaker, 'Estamos vivos, mijo. Por ahora es lo que tenemos.'),
+        page(speaker, 'Mañana veremos qué hacemos con la fonda. Vos sabés que aquí uno resuelve.'),
+      ]);
+    }
+
     return reply([
       page(speaker, 'Ese mandado te quedó bien, mijo. La yapa fue bien ganada.'),
       page(
@@ -146,6 +171,20 @@ function pipeDialogue(ctx) {
   }
 
   if (ctx.step === 'done') {
+    if (ctx.collapseStep === 'survive' || ctx.collapseStep === 'refugio') {
+      return reply([
+        page(speaker, '¡Socio, cuidado! Esa gente muerde y no se cansa.'),
+        page(speaker, 'Dale a la cabeza y no te dejes rodear. Yo me meto en la fonda.'),
+      ]);
+    }
+
+    if (ctx.collapseStep === 'done') {
+      return reply([
+        page(speaker, '¿Viste eso? El barrio se volvió loco en una tarde.'),
+        page(speaker, 'Mi abuela está adentro. Si vamos a aguantar, es juntos.'),
+      ]);
+    }
+
     if (ctx.crimeStep === 'inactive') {
       return reply(
         [

@@ -19,6 +19,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.dead = false;
     this.los = true;
     this.losAt = 0;
+    // Los zombis cojean distinto: cada uno camina a una velocidad levemente
+    // distinta para que la horda no se mueva como un bloque.
+    this.speedScale = def.behavior === 'zombie' ? 0.85 + ((index * 37) % 21) / 100 : 1;
     this.ai = createAI({
       homeX: spawn.x,
       homeY: spawn.y,
@@ -57,7 +60,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       worldHeight: this.scene.physics.world.bounds.height,
     });
 
-    this.setVelocity(result.vx, result.vy);
+    this.setVelocity(result.vx * this.speedScale, result.vy * this.speedScale);
     const dir = result.facing ?? 'down';
     if (result.vx !== 0 || result.vy !== 0) {
       const key = `${this.def.sprite}-walk-${dir}`;
@@ -119,6 +122,27 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         .ellipse(this.x, this.y - 1, 12, 5, 0x1b1b2b, 0.26)
         .setDepth(this.y - 1);
     }
+  }
+
+  // Los matones escapan cuando cae el colapso (no cuentan como derrota).
+  despawn() {
+    if (this.dead) return;
+    this.dead = true;
+    killAI(this.ai);
+    this.anims.stop();
+    if (this.body) this.body.enable = false;
+    this.setVelocity(0, 0);
+    this.shadow?.destroy();
+    this.shadow = null;
+    this.scene.tweens.add({
+      targets: this,
+      alpha: 0,
+      duration: 500,
+      onComplete: () => {
+        this.setVisible(false);
+        this.setActive(false);
+      },
+    });
   }
 
   die() {

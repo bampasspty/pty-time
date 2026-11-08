@@ -8,6 +8,9 @@ Archivos a crear (solo esos):
 - `src/data/earthquake.js`
 - `src/data/weapons.js` (Slice A: armas)
 - `src/data/enemies.js` (Slice A: matones)
+- `src/data/zombies.js` (Slice B: infectados)
+- `src/data/items.js` (Slice B: inventario)
+- `src/data/story.js` (Slice B: intro y colapso con PTY Alerta)
 
 Contenido en **español panameño natural**, cálido y breve. Nada de caricaturas ni
 estereotipos. Diálogos de 1-3 líneas por página, máximo 3 páginas por interacción.
@@ -95,6 +98,8 @@ export function getDialogue(npcId, ctx) { ... }
   drillUnlocked: boolean,
   // misión criminal (v0.2.0): 'locked' | 'inactive' | 'deal' | 'report' | 'done'
   crimeStep: '...',
+  // capítulo del colapso (v0.4.0): 'locked' | 'inactive' | 'survive' | 'refugio' | 'done'
+  collapseStep: '...',
   kills: number,
 }
 ```
@@ -164,6 +169,26 @@ elemento firme y cubrir cabeza y cuello; si está en la calle, alejarse de edifi
 postes y cables; después, evacuar con calma, usar escaleras (no ascensores), cortar
 gas/electricidad solo si es seguro, usar linterna (no velas) y seguir reportes oficiales.
 No inventar alertas ni magnitudes. No prometer predicción de sismos.
+
+## `src/data/story.js`, `src/data/items.js` y `src/data/zombies.js`
+
+- **`story.js`**: secuencias narrativas como listas de páginas (`intro`, `collapse`).
+  Cada página: `{ title, body, bullets?, disclaimer? }`. Las alertas del apocalipsis son
+  ficción y **siempre** llevan el disclaimer: «Alerta ficticia del videojuego. No es un
+  aviso oficial ni información real de emergencia.». Nunca se presentan como avisos
+  oficiales ni usan datos reales de emergencia.
+- **`items.js`**: objetos del inventario con `category`, `stack`, `sprite` y efecto
+  (`heal`, `ammo`). Iniciales: `vendaje`, `lata`, `balas9`; `STARTING_INVENTORY` y
+  `INVENTORY_SLOTS`.
+- **`zombies.js`**: tipos de zombi con `behavior: 'zombie'` (detectan sin línea de visión
+  y persiguen), `maxHp`, `speed`, `damage`, `attackCooldownMs`, `alertNoise` y `sprite`.
+
+## `src/data/missions.js` (registro completo)
+
+Además de `el-mandado` y `limpia-la-cancha`, el registro incluye **`el-colapso`**
+(categoría `historia`): se abre al terminar la misión criminal, `killTarget` de 5
+infectados hasta el paso `refugio`, y `reachShelter` cierra el capítulo. El motor no
+cambia: solo se añade la definición y `MISSION_ORDER` la incluye.
 
 ## Estilo
 

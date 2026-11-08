@@ -115,9 +115,54 @@ export const MISSIONS = Object.freeze({
       bullets: Object.freeze(['+60 de yapa', '+10 de reputación en el barrio']),
     }),
   }),
+
+  'el-colapso': Object.freeze({
+    id: 'el-colapso',
+    category: 'historia',
+    title: 'Capítulo III · El colapso',
+    description: 'Algo raro se siente en San Miguelito. Cuando el barrio despierte, ya nada será igual.',
+    initialStep: 'locked',
+    startStep: 'survive',
+    requires: Object.freeze({ mission: 'limpia-la-cancha', step: 'done' }),
+    steps: Object.freeze({
+      inactive: 'Algo raro se siente en el barrio.',
+      survive: 'Sobrevive a los primeros infectados.',
+      refugio: 'Corre a la fonda de Doña Nena.',
+      done: 'Capítulo III completado. El barrio ya no es el mismo.',
+    }),
+    order: Object.freeze(['survive', 'refugio', 'done']),
+    actions: Object.freeze({
+      collapseStarts: Object.freeze({ from: 'inactive', to: 'survive', toast: 'CAPÍTULO III · EL COLAPSO' }),
+      reachShelter: Object.freeze({
+        from: 'refugio',
+        to: 'done',
+        toast: 'Capítulo III completado',
+        kind: 'finish',
+        completion: Object.freeze({
+          body: 'Llegaste a la fonda con Doña Nena. El barrio cambió, pero vos seguís vivo.',
+          bullets: Object.freeze([
+            'Sobreviviste al primer día',
+            'Doña Nena te espera: el refugio es lo que sigue',
+          ]),
+        }),
+      }),
+    }),
+    collectibles: Object.freeze({}),
+    marker: Object.freeze({ inactive: 'nena', refugio: 'nena', done: 'nena' }),
+    killTarget: Object.freeze({
+      count: 5,
+      from: 'survive',
+      to: 'refugio',
+      toast: 'La horda bajó. Corre a la fonda de Doña Nena.',
+    }),
+    completion: Object.freeze({
+      body: 'Llegaste a la fonda con Doña Nena. El barrio cambió, pero vos seguís vivo.',
+      bullets: Object.freeze(['Sobreviviste al primer día']),
+    }),
+  }),
 });
 
-export const MISSION_ORDER = Object.freeze(['el-mandado', 'limpia-la-cancha']);
+export const MISSION_ORDER = Object.freeze(['el-mandado', 'limpia-la-cancha', 'el-colapso']);
 
 // Compatibilidad con código/versiones anteriores que importaban MISSION.
 export const MISSION = MISSIONS['el-mandado'];

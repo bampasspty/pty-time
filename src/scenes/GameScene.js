@@ -3,11 +3,15 @@ import { SAN_MIGUELITO } from '../world/sanMiguelito.js';
 import { NPCS } from '../data/npcs.js';
 import { getDialogue } from '../data/dialogues.js';
 import { getEnemyDef } from '../data/enemies.js';
+import { getZombieDef } from '../data/zombies.js';
+import { getItem } from '../data/items.js';
+import { STORY_PAGES } from '../data/story.js';
 import { EARTHQUAKE } from '../data/earthquake.js';
 import { events } from '../systems/EventBus.js';
 import { inputState } from '../systems/InputState.js';
 import { MissionSystem } from '../systems/MissionSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
+import { InventorySystem } from '../systems/InventorySystem.js';
 import { readSave, sanitizeSave, writeSave } from '../systems/SaveSystem.js';
 import { QuakeDrill } from '../systems/QuakeDrill.js';
 import { MapBuilder } from '../world/MapBuilder.js';
@@ -20,6 +24,8 @@ import { cameraZoom, clamp, CSS, textStyle, COLORS } from '../config.js';
 const BULLET_POOL = 28;
 const AIM_HEIGHT = 10; // las balas salen del torso, no de los pies
 const HURT_COOLDOWN = 520;
+// Caja de suministro del mapa -> objeto del inventario.
+const SUPPLY_ITEMS = { vendaje: 'vendaje', lata: 'lata', caja: 'balas9' };
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -34,6 +40,14 @@ export class GameScene extends Phaser.Scene {
       : this.save.playerVariant;
     this.mission = new MissionSystem(this.save);
     this.combat = new CombatSystem(this.save);
+    this.inventory = new InventorySystem(this.save);
+    this.phase = this.save.world.phase;
+    this.storyOpen = false;
+    this.pendingCollapse = false;
+    this.collapseApplied = false;
+    this.zombiesSpawned = false;
+    this.zombieList = [];
+    this.supplies = [];
     this.wasStarted = Boolean(this.save.started);
     this.dialogueOpen = false;
     this.modalOpen = false;
@@ -103,6 +117,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.bindEvents();
+    this.setupSliceB();
     this.persist();
     events.emit('game:ready', { missionTitle: this.mission.title });
 
@@ -112,6 +127,7 @@ export class GameScene extends Phaser.Scene {
   // ------------------------------------------------------------------ combate
 
   createCombat(built) {
+    this.staticGroup = built.staticGroup;
     this.bullets = this.physics.add.group({ classType: Bullet, maxSize: BULLET_POOL });
     this.enemies = (SAN_MIGUELITO.enemies ?? []).map((spawn, index) => {
       const def = getEnemyDef(spawn.id);
@@ -391,7 +407,11 @@ export class GameScene extends Phaser.Scene {
     for (const enemy of this.enemies) {
       if (enemy.dead) continue;
       const dist = Math.hypot(enemy.x - this.player.x, enemy.y - this.player.y);
-      const los = dist <= enemy.def.loseRange + 40 ? this.enemyLineOfSight(enemy, time) : true;
+      const los = enemy.def.behavior === 'zombie'
+        ? true
+        : dist <= enemy.def.loseRange + 40
+          ? this.enemyLineOfSight(enemy, time)
+          : true;
       enemy.update(time, delta, this.player, {
         onAttack: (attacker) => this.damagePlayer(attacker.def.damage),
         hasLineOfSight: los,
@@ -480,7 +500,189 @@ export class GameScene extends Phaser.Scene {
       reloading: this.combat.isReloadingAt(this.time.now),
       defeats: this.combat.defeats,
       reputation: this.mission.reputation.barrio,
+      mochila: this.inventory.size,
+      phase: this.phase,
     };
+  }
+
+  // ------------------------------------------------------------- Slice B
+
+  setupSliceB() {
+    const collapse = this.mission.getState('el-colapso');
+    if (!this.save.story.introSeen) {
+      this.time.delayedCall(700, () => this.requestStory('intro'));
+    }
+    if (this.save.world.phase !== 'barrio') {
+      this.applyCollapseWorld(false);
+    } else if (collapse.step === 'inactive') {
+      // El capitulo anterior termino pero el colapso no llego a dispararse.
+      this.pendingCollapse = true;
+    }
+  }
+
+  requestStory(id) {
+    const story = STORY_PAGES[id];
+    if (!story || this.storyOpen) return;
+    this.storyOpen = true;
+    events.emit('story:request', { id, pages: story.pages });
+  }
+
+  handleStoryFinished(id) {
+    this.storyOpen = false;
+    if (id === 'intro') {
+      this.save.story.introSeen = true;
+      this.persist();
+      if (this.pendingCollapse && !this.collapseApplied && this.phase === 'barrio') {
+        this.pendingCollapse = false;
+        this.time.delayedCall(300, () => this.beginCollapse());
+      }
+      return;
+    }
+    if (id === 'collapse') {
+      this.save.story.collapseSeen = true;
+      this.applyCollapseWorld(true);
+    }
+  }
+
+  beginCollapse() {
+    if (this.collapseApplied || this.save.world.phase !== 'barrio') return;
+    this.requestStory('collapse');
+  }
+
+  // Cambia el mundo al apocalipsis: los matones se van, llegan infectados y
+  // aparecen suministros.
+  applyCollapseWorld(animate = true) {
+    if (this.collapseApplied) return;
+    this.collapseApplied = true;
+    this.phase = 'colapso';
+    this.save.world.phase = 'colapso';
+    this.despawnMatones();
+    this.spawnZombies();
+    this.spawnSupplies();
+    this.handleMissionAction('collapseStarts');
+    if (animate) {
+      this.cameras.main.flash(420, 120, 0, 0);
+      this.cameras.main.shake(520, 0.004);
+      events.emit('area:enter', { title: 'EL COLAPSO', subtitle: 'San Miguelito ya no es el mismo' });
+    }
+    events.emit('hud:toast', 'PTY ALERTA: esto no es un simulacro. Mantente vivo.');
+    this.persist();
+    this.emitHud();
+  }
+
+  despawnMatones() {
+    for (const enemy of this.enemies) {
+      if (enemy.dead || enemy.def.behavior === 'zombie') continue;
+      enemy.despawn?.();
+    }
+  }
+
+  spawnZombies() {
+    if (this.zombiesSpawned) return;
+    this.zombiesSpawned = true;
+    const spawns = (SAN_MIGUELITO.zombieSpawns ?? []).map((entry) => ({ ...entry }));
+    const bounds = this.physics.world.bounds;
+    const offsets = [
+      [150, 40],
+      [-140, -60],
+      [120, 150],
+      [-150, 120],
+    ];
+    let extra = 0;
+    for (const [dx, dy] of offsets) {
+      if (extra >= 2) break;
+      const x = clamp(this.player.x + dx, 24, bounds.width - 24);
+      const y = clamp(this.player.y + dy, 40, bounds.height - 12);
+      if (!this.hasLineOfSight(this.player.x, this.player.y - AIM_HEIGHT, x, y - AIM_HEIGHT)) continue;
+      spawns.push({ id: 'infectado', x, y });
+      extra += 1;
+    }
+    for (const spawn of spawns) {
+      const def = getZombieDef(spawn.id);
+      const enemy = new Enemy(this, def, { ...spawn, facing: 'down' }, this.enemies.length);
+      this.enemies.push(enemy);
+      this.zombieList.push(enemy);
+    }
+    if (this.zombieList.length) {
+      this.physics.add.collider(this.zombieList, this.staticGroup);
+      this.physics.add.collider(this.player, this.zombieList);
+    }
+  }
+
+  spawnSupplies() {
+    if (this.supplies.length) return;
+    const taken = new Set(this.save.world.suppliesTaken ?? []);
+    for (const [index, entry] of (SAN_MIGUELITO.supplies ?? []).entries()) {
+      const key = entry.id + '-' + index;
+      const itemId = SUPPLY_ITEMS[entry.id] ?? entry.id;
+      if (taken.has(key) || !getItem(itemId)) continue;
+      const sprite = this.add.image(entry.x, entry.y, 'prop-' + entry.id).setDepth(entry.y + 1);
+      const glow = this.add
+        .ellipse(entry.x, entry.y - 6, 22, 8, COLORS.yellow, 0.22)
+        .setDepth(entry.y);
+      this.tweens.add({ targets: glow, alpha: 0.05, duration: 900, yoyo: true, repeat: -1 });
+      this.supplies.push({ key, itemId, kind: entry.id, x: entry.x, y: entry.y, sprite, glow });
+    }
+  }
+
+  pickupSupply(supply) {
+    const item = getItem(supply.itemId);
+    if (!item) return;
+    const result = this.inventory.add(supply.itemId, 1);
+    if (result.added <= 0) {
+      events.emit('hud:toast', 'La mochila est\u00e1 llena. Usa algo primero.');
+      return;
+    }
+    supply.sprite?.destroy();
+    supply.glow?.destroy();
+    this.supplies = this.supplies.filter((entry) => entry !== supply);
+    this.save.world.suppliesTaken.push(supply.key);
+    this.focus = null;
+    this.hidePrompt();
+    this.emitPromptState(false, '');
+    this.lastPromptKey = '';
+    events.emit('hud:toast', 'Guardaste: ' + item.name);
+    this.persist();
+    this.emitHud();
+  }
+
+  checkShelter() {
+    if (this.mission.getState('el-colapso').step !== 'refugio') return;
+    const nena = this.npcs.find((npc) => npc.npcId === 'nena');
+    if (!nena) return;
+    if (Math.hypot(nena.x - this.player.x, nena.y - this.player.y) < 70) {
+      this.handleMissionAction('reachShelter');
+    }
+  }
+
+  openInventory() {
+    if (this.dialogueOpen || this.modalOpen || this.ko) return;
+    events.emit('inventory:open', {
+      items: this.inventory.list(),
+      size: this.inventory.size,
+      capacity: this.inventory.capacity,
+      canHeal: this.inventory.has('vendaje') && this.combat.hp < this.combat.maxHp,
+      canAmmo: this.inventory.has('balas9'),
+    });
+  }
+
+  useInventoryItem(itemId) {
+    const item = getItem(itemId);
+    if (!item) return;
+    if (item.heal) {
+      if (!this.inventory.has(itemId)) return;
+      const before = this.combat.hp;
+      this.inventory.use(itemId);
+      this.combat.heal(item.heal);
+      events.emit('hud:toast', this.combat.hp > before ? 'Usaste ' + item.name + '.' : 'Ya estabas entero.');
+    } else if (item.ammo && item.ammoType) {
+      if (!this.inventory.has(itemId)) return;
+      this.inventory.use(itemId);
+      this.combat.addAmmo(item.ammoType, item.ammo);
+      events.emit('hud:toast', '+' + item.ammo + ' balas para la 9.');
+    }
+    this.persist();
+    this.emitHud();
   }
 
   setupCamera() {
@@ -535,6 +737,9 @@ export class GameScene extends Phaser.Scene {
       if (open) {
         this.player.setVelocity(0, 0);
         this.hidePrompt();
+      } else if (this.pendingCollapse && !this.collapseApplied && this.phase === 'barrio') {
+        this.pendingCollapse = false;
+        this.time.delayedCall(260, () => this.beginCollapse());
       }
     };
     this.onDialogueClosed = ({ action } = {}) => {
@@ -551,6 +756,9 @@ export class GameScene extends Phaser.Scene {
     this.onUiReload = () => this.reloadWeapon();
     this.onUiWeapon = () => this.toggleWeapon();
     this.onPlayerRespawn = () => this.respawnPlayer();
+    this.onUiInventory = () => this.openInventory();
+    this.onUiUseItem = ({ id } = {}) => this.useInventoryItem(id);
+    this.onStoryFinished = ({ id } = {}) => this.handleStoryFinished(id);
 
     events.on('ui:interact', this.onUiInteract);
     events.on('ui:busy', this.onUiBusy);
@@ -562,6 +770,9 @@ export class GameScene extends Phaser.Scene {
     events.on('ui:reload', this.onUiReload);
     events.on('ui:weapon', this.onUiWeapon);
     events.on('player:respawn', this.onPlayerRespawn);
+    events.on('ui:inventory', this.onUiInventory);
+    events.on('ui:use-item', this.onUiUseItem);
+    events.on('story:finished', this.onStoryFinished);
 
     this.onPageHide = () => this.persist();
     window.addEventListener('pagehide', this.onPageHide);
@@ -577,6 +788,9 @@ export class GameScene extends Phaser.Scene {
       events.off('ui:reload', this.onUiReload);
       events.off('ui:weapon', this.onUiWeapon);
       events.off('player:respawn', this.onPlayerRespawn);
+      events.off('ui:inventory', this.onUiInventory);
+      events.off('ui:use-item', this.onUiUseItem);
+      events.off('story:finished', this.onStoryFinished);
       window.removeEventListener('pagehide', this.onPageHide);
       this.drill?.stop();
       this.mapBuilder?.destroy();
@@ -609,6 +823,7 @@ export class GameScene extends Phaser.Scene {
     if (this.drill) this.drill.update(time, delta);
 
     this.updateFocus();
+    this.checkShelter();
     this.syncPromptPosition();
   }
 
@@ -660,6 +875,14 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    for (const supply of this.supplies) {
+      const d = Math.hypot(supply.x - this.player.x, supply.y - this.player.y);
+      if (d < 26 && d < bestDist) {
+        best = { type: 'supply', supply, label: 'RECOGER', y: supply.y - 16 };
+        bestDist = d;
+      }
+    }
+
     if (this.mission.canCollect('chancla')) {
       for (const item of this.items) {
         if (item.id !== 'chancla' || !item.sprite?.visible) continue;
@@ -675,7 +898,8 @@ export class GameScene extends Phaser.Scene {
     if (best) {
       this.promptText.setText(best.label);
       this.promptBg.width = Math.max(54, this.promptText.width + 12);
-      this.prompt.setPosition(best.type === 'npc' ? best.npc.x : best.item.x, best.y);
+      const promptX = best.type === 'npc' ? best.npc.x : best.type === 'item' ? best.item.x : best.supply.x;
+      this.prompt.setPosition(promptX, best.y);
       this.prompt.setVisible(true);
       this.emitPromptState(true, best.label);
     } else {
@@ -690,6 +914,8 @@ export class GameScene extends Phaser.Scene {
       this.prompt.setPosition(this.focus.npc.x, this.focus.npc.y - 30);
     } else if (this.focus?.type === 'item') {
       this.prompt.setPosition(this.focus.item.x, this.focus.item.y - 16);
+    } else if (this.focus?.type === 'supply') {
+      this.prompt.setPosition(this.focus.supply.x, this.focus.supply.y - 16);
     }
     this.prompt.setDepth(20000);
   }
@@ -710,6 +936,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.focus) return;
     if (this.focus.type === 'npc') this.openDialogue(this.focus.npc);
     else if (this.focus.type === 'item') this.pickupItem(this.focus.item);
+    else if (this.focus.type === 'supply') this.pickupSupply(this.focus.supply);
   }
 
   openDialogue(npc) {
@@ -766,6 +993,17 @@ export class GameScene extends Phaser.Scene {
     // Los matones vuelven a aparecer cuando arranca la misión de limpieza.
     if (result.missionId === 'limpia-la-cancha' && result.step === 'deal') {
       this.reviveEnemies();
+    }
+    // Al terminar la mision criminal arranca el Capitulo III (el colapso).
+    if (result.missionId === 'limpia-la-cancha' && result.kind === 'finish') {
+      this.pendingCollapse = true;
+    }
+    // Al llegar a la fonda termina el capitulo y el mundo queda en apocalipsis.
+    if (result.missionId === 'el-colapso' && result.kind === 'finish') {
+      this.phase = 'apocalipsis';
+      this.save.world.phase = 'apocalipsis';
+      this.persist();
+      this.emitHud();
     }
 
     if (result.kind === 'finish') {
@@ -832,8 +1070,12 @@ export class GameScene extends Phaser.Scene {
       playerVariant: this.variant,
       player: { hp: this.combat.hp, maxHp: this.combat.maxHp },
       combat: this.combat.toSave(),
+      world: this.save.world,
+      story: this.save.story,
+      inventory: this.inventory.toSave(),
       started: true,
     };
+    this.save.world.phase = this.phase;
     this.save = sanitizeSave(save);
     writeSave(this.save);
   }

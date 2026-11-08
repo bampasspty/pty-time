@@ -54,3 +54,20 @@ test('utilidades de cámara y clamp', () => {
   assert.equal(cameraZoom(1920, 1080), 4);
   assert.equal(cameraZoom(390, 844), 2);
 });
+
+test('spawns de zombis y suministros del Slice B son válidos', () => {
+  assert.ok(Array.isArray(map.zombieSpawns), 'hay spawns de infectados');
+  assert.ok(map.zombieSpawns.length >= 5);
+  for (const spawn of map.zombieSpawns) {
+    assert.ok(spawn.id === 'infectado', spawn.id);
+    assert.ok(spawn.x > 0 && spawn.x < map.width * TILE_SIZE, JSON.stringify(spawn));
+    assert.ok(spawn.y > 0 && spawn.y < map.height * TILE_SIZE, JSON.stringify(spawn));
+  }
+  assert.ok(Array.isArray(map.supplies), 'hay suministros');
+  assert.ok(map.supplies.length >= 3);
+  for (const supply of map.supplies) {
+    assert.ok(['vendaje', 'lata', 'caja'].includes(supply.id), supply.id);
+    assert.ok(supply.x > 0 && supply.x < map.width * TILE_SIZE, JSON.stringify(supply));
+    assert.ok(supply.y > 0 && supply.y < map.height * TILE_SIZE, JSON.stringify(supply));
+  }
+});

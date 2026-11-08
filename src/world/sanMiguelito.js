@@ -143,7 +143,7 @@ export const SAN_MIGUELITO = {
     { kind: 'palm', x: 592, y: 600 },
     { kind: 'palm', x: 24, y: 600 },
 
-    // Árboles de mango ---------------------------------------------
+// Árboles de mango ---------------------------------------------
     { kind: 'mango-tree', x: 48, y: 56 },
     { kind: 'mango-tree', x: 144, y: 56 },
     { kind: 'mango-tree', x: 240, y: 56 },
@@ -352,6 +352,27 @@ export const SAN_MIGUELITO = {
     { id: 'maton', x: 152, y: 500, facing: 'left' },
     { id: 'maton-duro', x: 120, y: 528, facing: 'up' },
     { id: 'maton', x: 64, y: 528, facing: 'right' },
+  ],
+
+  // Slice B: infectados que aparecen durante el colapso (ver data/zombies.js).
+  zombieSpawns: [
+    { id: 'infectado', x: 200, y: 384 },
+    { id: 'infectado', x: 480, y: 350 },
+    { id: 'infectado', x: 760, y: 384 },
+    { id: 'infectado', x: 920, y: 388 },
+    { id: 'infectado', x: 120, y: 520 },
+    { id: 'infectado', x: 640, y: 210 },
+    { id: 'infectado', x: 700, y: 470 },
+    { id: 'infectado', x: 860, y: 620 },
+  ],
+
+  // Suministros repartidos tras el colapso (id = objeto de items.js).
+  supplies: [
+    { id: 'vendaje', x: 140, y: 322 },
+    { id: 'caja', x: 420, y: 350 },
+    { id: 'vendaje', x: 660, y: 460 },
+    { id: 'lata', x: 860, y: 560 },
+    { id: 'caja', x: 300, y: 600 },
   ],
 
   zones: [

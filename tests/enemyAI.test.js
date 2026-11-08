@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ENEMIES } from '../src/data/enemies.js';
+import { ZOMBIES } from '../src/data/zombies.js';
 import { alertAI, createAI, isAlerted, killAI, stepAI } from '../src/systems/EnemyAI.js';
 
 const DEF = ENEMIES.maton;
@@ -128,4 +129,44 @@ test('los dos tipos de matón tienen datos completos', () => {
     assert.ok(def.damage > 0, id);
     assert.ok(def.attackCooldownMs > 0, id);
   }
+});
+
+test('los zombis detectan y persiguen sin línea de visión', () => {
+  const zombie = ZOMBIES.infectado;
+  const ai = createAI({ homeX: 100, homeY: 100 });
+  const near = { x: 100 + zombie.detectRange - 10, y: 100 };
+  const result = stepAI(ai, {
+    now: 1000,
+    x: 100,
+    y: 100,
+    player: near,
+    def: zombie,
+    hasLineOfSight: false,
+  });
+  assert.equal(result.state, 'chase');
+  assert.ok(result.vx > 0);
+});
+
+test('los zombis atacan aunque no tengan línea de visión', () => {
+  const zombie = ZOMBIES.infectado;
+  const ai = createAI({ homeX: 100, homeY: 100 });
+  const close = { x: 100 + zombie.attackRange - 4, y: 100 };
+  const first = stepAI(ai, {
+    now: 2000,
+    x: 100,
+    y: 100,
+    player: close,
+    def: zombie,
+    hasLineOfSight: false,
+  });
+  assert.equal(first.state, 'attack');
+  assert.equal(first.attack, true);
+});
+
+test('el infectado tiene datos completos y comportamiento zombi', () => {
+  assert.equal(ZOMBIES.infectado.behavior, 'zombie');
+  assert.equal(ZOMBIES.infectado.sprite, 'enemy-infectado');
+  assert.ok(ZOMBIES.infectado.maxHp > 0);
+  assert.ok(ZOMBIES.infectado.damage > 0);
+  assert.ok(ZOMBIES.infectado.speed < ENEMIES.maton.speed, 'el zombi camina más lento que el matón');
 });

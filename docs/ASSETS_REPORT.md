@@ -6,8 +6,8 @@ las veces que haga falta y produce los mismos archivos.
 
 ## Resumen
 
-- **65 PNG de juego** generados en `public/assets/`.
-- **Peso total: 44.9 KB** (0.04 MB) / presupuesto 1.2 MB.
+- **69 PNG de juego** generados en `public/assets/`.
+- **Peso total: 46.6 KB** (0.05 MB) / presupuesto 1.2 MB.
 - Contact sheet de revision: `tools/asset_sheet.png` (no se carga en el juego).
 - Todos los PNG son RGBA, paleta cerrada y sin antialiasing (alfa 0/255).
 - Sin assets externos con copyright. La fuente Press Start 2P (OFL) se conserva.
@@ -26,6 +26,7 @@ las veces que haga falta y produce los mismos archivos.
 | Edificios | `buildings/metro.png` | 80x56 | 0.7 |
 | Edificios | `buildings/minisuper.png` | 96x64 | 1.0 |
 | Edificios | `buildings/school.png` | 112x80 | 1.0 |
+| Personajes | `characters/enemy-infectado.png` | 48x96 | 1.2 |
 | Personajes | `characters/enemy-maton-duro.png` | 48x96 | 1.2 |
 | Personajes | `characters/enemy-maton.png` | 48x96 | 1.2 |
 | Personajes | `characters/npc-ana.png` | 48x96 | 1.2 |
@@ -46,6 +47,7 @@ las veces que haga falta y produce los mismos archivos.
 | Personajes | `characters/player-m-yellow.png` | 48x96 | 1.2 |
 | Props | `props/bench.png` | 24x16 | 0.2 |
 | Props | `props/bush.png` | 16x16 | 0.2 |
+| Props | `props/caja.png` | 16x16 | 0.2 |
 | Props | `props/car-blue.png` | 32x24 | 0.3 |
 | Props | `props/car-red.png` | 32x24 | 0.3 |
 | Props | `props/chancla.png` | 12x8 | 0.2 |
@@ -54,6 +56,7 @@ las veces que haga falta y produce los mismos archivos.
 | Props | `props/dog.png` | 16x16 | 0.2 |
 | Props | `props/fence.png` | 16x16 | 0.2 |
 | Props | `props/hoop.png` | 16x24 | 0.2 |
+| Props | `props/lata.png` | 16x16 | 0.2 |
 | Props | `props/mango-tree.png` | 32x40 | 0.5 |
 | Props | `props/palm.png` | 32x48 | 0.6 |
 | Props | `props/planter.png` | 16x16 | 0.3 |
@@ -63,6 +66,7 @@ las veces que haga falta y produce los mismos archivos.
 | Props | `props/stall.png` | 40x32 | 0.5 |
 | Props | `props/taxi.png` | 32x24 | 0.4 |
 | Props | `props/trash.png` | 12x16 | 0.2 |
+| Props | `props/vendaje.png` | 16x16 | 0.2 |
 | Tiles | `tiles/tileset.png` | 256x16 | 1.3 |
 | Iconos UI | `ui/icon-back.png` | 16x16 | 0.2 |
 | Iconos UI | `ui/icon-pin.png` | 16x16 | 0.2 |

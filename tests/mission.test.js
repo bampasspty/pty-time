@@ -125,3 +125,55 @@ test('la estrella de objetivo apunta al NPC correcto', () => {
   assert.equal(done.markerNpc(), 'pipe', 'sin mandado pendiente apunta a Pipe (misión criminal)');
   assert.equal(done.title, CRIME.title);
 });
+
+test('el capítulo del colapso se abre al limpiar la plaza', () => {
+  const mission = new MissionSystem({
+    missions: {
+      'el-mandado': { step: 'done' },
+      'limpia-la-cancha': { step: 'done' },
+    },
+  });
+  assert.equal(mission.getState('el-colapso').step, 'inactive');
+  assert.equal(mission.title, MISSIONS['el-colapso'].title);
+  assert.equal(mission.markerNpc(), 'nena');
+
+  const started = mission.applyAction('collapseStarts');
+  assert.equal(started.changed, true);
+  assert.equal(mission.getState('el-colapso').step, 'survive');
+  assert.match(mission.getObjective(), /infectados/i);
+});
+
+test('sobrevivir a cinco infectados lleva a la fonda y cierra el capítulo', () => {
+  const mission = new MissionSystem({
+    missions: {
+      'el-mandado': { step: 'done' },
+      'limpia-la-cancha': { step: 'done' },
+      'el-colapso': { step: 'inactive' },
+    },
+  });
+  mission.applyAction('collapseStarts');
+
+  for (let i = 0; i < 4; i++) {
+    const result = mission.handleEnemyDefeated();
+    assert.equal(result.done, false);
+  }
+  assert.match(mission.getObjective(), /4\/5/);
+
+  const fifth = mission.handleEnemyDefeated();
+  assert.equal(fifth.done, true);
+  assert.equal(mission.getState('el-colapso').step, 'refugio');
+  assert.match(mission.getObjective(), /fonda/i);
+
+  const finish = mission.applyAction('reachShelter');
+  assert.equal(finish.changed, true);
+  assert.equal(finish.kind, 'finish');
+  assert.equal(mission.getState('el-colapso').step, 'done');
+  assert.ok(finish.completion?.body);
+  assert.equal(mission.markerNpc(), 'nena');
+});
+
+test('el colapso no se dispara antes de terminar la misión criminal', () => {
+  const mission = new MissionSystem({});
+  assert.equal(mission.applyAction('collapseStarts').changed, false);
+  assert.equal(mission.applyAction('reachShelter').changed, false);
+});

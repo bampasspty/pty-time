@@ -116,6 +116,15 @@ Enemigos del Slice A (2 hojas), nombre `enemy-{id}.png`, mismo layout 48x96:
 | `maton` | Matón de la plaza | gorra roja, camiseta oscura, pantalón azul |
 | `maton-duro` | Matón jefe | camiseta roja, bigote, pantalón oscuro |
 
+Zombis del Slice B (1 hoja), nombre `enemy-{id}.png`, mismo layout 48x96:
+
+| id | zombi | notas visuales |
+|---|---|---|
+| `infectado` | Infectado común | piel verdosa (`#9db88a`/`#6f8a61`), ropa gris sucia, lentes |
+
+Objetos de suministro 16x16 en `props/`: `vendaje.png` (cruz roja), `lata.png`
+(comida) y `caja.png` (caja de balas).
+
 Los efectos de combate (bala, fogonazo, impacto y mira) **no son PNG del contrato**:
 se generan en memoria en `BootScene.createFxTextures()`.
 

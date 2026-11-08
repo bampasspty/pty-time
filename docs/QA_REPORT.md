@@ -1,89 +1,92 @@
-# QA REPORT · PTY Time v0.3.0 (Slice A cerrado)
+# QA REPORT · PTY Time v0.4.0 (Slice B · MVP cerrado)
 
 Fecha: 2026-11-07 · Navegador: Microsoft Edge headless (Playwright `playwright-core`),
 Windows. Servidor local: Vite 7 en `http://127.0.0.1:5173`. Producción:
 **https://pty-time.vercel.app**.
 
-Alcance: cierre del **Slice A** — Calito canónico, combate, matones con IA y línea de
-visión, misión criminal, vida/munición, cambio de arma, guardado v2 y controles táctiles.
+Alcance: cierre del MVP — introducción narrativa, colapso con PTY Alerta, infectados,
+Capítulo III, inventario básico, suministros y guardado v3.
 
 ## 1. Pruebas automáticas (`node --test "tests/*.test.js"`)
 
-Resultado: **55/55 pruebas pasan**.
+Resultado: **73/73 pruebas pasan**.
 
 | Archivo | Pruebas | Cobertura |
 |---|---|---|
-| `tests/mission.test.js` | 8 | mandado, desbloqueo criminal, conteo de enemigos, recompensas, marcador |
-| `tests/dialogues.test.js` | 7 | 8 NPCs × 6 pasos × 5 pasos criminales; acciones exactas; contexto inválido |
-| `tests/save.test.js` | 9 | ida/vuelta v2, migración v1 → v2, sanitización, JSON corrupto, `hasProgress` |
-| `tests/combat.test.js` | 9 | cadencia, cargador, recarga, cuerpo a cuerpo, daño/muerte/reaparición, guardado |
-| `tests/enemyAI.test.js` | 11 | estados, cooldown, alerta por ruido, **línea de visión**, investigación, mirada, datos |
-| `tests/map.test.js` | 6 | dimensiones, kinds, NPCs, chancleta, zonas, spawns de matones |
-| `tests/assets.test.js` | 5 | 65 PNG, hojas de personaje/enemigos 48×96, retratos, edificios/props |
+| `tests/mission.test.js` | 11 | mandado, crimen, **Capítulo III**, recompensas, marcadores |
+| `tests/dialogues.test.js` | 8 | 8 NPCs × 6 pasos × 5 criminales × 5 del colapso; acciones; contexto inválido |
+| `tests/save.test.js` | 11 | ida/vuelta v3, **migración v1/v2 → v3**, mundo, historia, inventario, corrupción |
+| `tests/combat.test.js` | 9 | cadencia, cargador, recarga, cuerpo a cuerpo, daño/muerte/reaparición |
+| `tests/enemyAI.test.js` | 11 | matones y **zombis** (sin línea de visión), cooldown, alerta, mirada |
+| `tests/inventory.test.js` | 7 | pilas, capacidad, uso, sanitización e ida/vuelta |
+| `tests/map.test.js` | 7 | dimensiones, kinds, NPCs, zonas, **spawns de zombis y suministros** |
+| `tests/assets.test.js` | 6 | 69 PNG, personajes, **infectado**, objetos de suministro 16×16 |
 
-## 2. QA E2E de combate (`tools/qa-combat.mjs`)
+## 2. QA E2E de combate + Slice B (`tools/qa-combat.mjs`)
 
-Resultado: **22/22 comprobaciones pasan, 0 errores de consola/página**.
+Resultado: **30/30 comprobaciones pasan, 0 errores de consola/página**.
 
-- 4 matones, HUD con vida (100) y munición (8/30).
-- Disparo: consume munición, golpea al matón y actualiza el HUD.
-- Recarga manual (R / botón) y **cambio de arma** (Q / botón ARMA).
-- **Línea de visión**: bloqueada por edificio, libre en la calle.
-- Mandado completo → +25 yapa y simulacro; crimen se abre y `startCrime` revive matones.
-- 3 matones derrotados → `3/3` → `report`; `reportCrime` → +60 yapa, +10 reputación.
-- Vida a 0 → modal TE TUMBARON → reaparición con vida completa.
-- Guardado v2: misiones `done`, 85 yapa, 3 derrotas.
-- Móvil táctil: botones FUEGO/R/ARMA visibles, **tocar FUEGO dispara** y **tocar ARMA
-  cambia de arma**.
-- Rendimiento medido en el flujo completo: 42–59 FPS (modo desarrollo, Edge headless GPU).
+- Intro narrativa, 4 matones, HUD con vida/munición/mochila y fase del mundo.
+- Disparo, impacto, recarga, cambio de arma y línea de visión.
+- Mandado completo → misión criminal → **el colapso arranca solo** tras la recompensa.
+- **PTY Alerta** con disclaimer visible y banner **EL COLAPSO**.
+- **10 infectados** (8 del mapa + 2 cerca de Calito) y **5 suministros** en el mapa.
+- KO y reaparición siguen funcionando con la horda activa.
+- Cinco infectados derrotados → paso `refugio`; llegar a la fonda → `done` y mundo en
+  `apocalipsis`.
+- Recoger un suministro suma al inventario; usar un vendaje cura y gasta el objeto;
+  el panel MOCHILA abre con sus botones.
+- Guardado v3 en disco: versión 3, misiones `done`, fase `apocalipsis`, banderas de
+  historia e inventario presentes.
+- Móvil táctil: FUEGO, R, ARMA y **MOCHILA** visibles y funcionando por toque.
+- **60 FPS** en escritorio (modo desarrollo).
 
 ## 3. QA E2E de regresión (`tools/qa-final.mjs`)
 
 Resultado: **20/20 comprobaciones pasan, 0 errores**.
 
-- Título, pantalla de Calito (apariencia), misión del mandado paso a paso.
-- Modal de recompensa, simulacro completo (cubrirse → sujetarse → evacuar) con disclaimer
-  y fuente SINAPROC; CONTINUAR restaura el guardado v2.
-- **59.2 FPS** a 1280×720 tras calentar el primer frame.
+- Título, pantalla de Calito, intro cerrada, misión del mandado paso a paso.
+- Simulacro completo con disclaimer y fuente SINAPROC; CONTINUAR restaura el guardado v3.
+- **58.6 FPS** a 1280×720.
 - Móvil retrato y horizontal: joystick, HABLAR, diálogos y modales caben en pantalla.
 
 ## 4. QA de producción (`tools/qa-prod.mjs`)
 
-Resultado: **9/9 comprobaciones pasan, 0 errores de consola**, contra la URL pública.
+Resultado: **10/10 comprobaciones pasan, 0 errores de consola**, contra la URL pública.
 
-- Producción sirve la build v0.3 (`index-DRaj8FuF.js`).
-- Título «Calito, del barrio al apocalipsis», footer `DEMO v0.3`.
-- Pantalla CALITO, 4 matones, HUD 8/30, línea de visión y disparo funcionando.
-- **56–58 FPS** en la URL pública a 1280×720.
-- **Gama baja emulada:** teléfono horizontal 844×390 con CPU limitada 4× (CDP
-  `Emulation.setCPUThrottlingRate`), táctil activo, 4 matones: **56 FPS** y controles
-  FUEGO/R/ARMA visibles. Es una aproximación; falta el teléfono físico.
+- Producción sirve la build v0.4 (`index-uPsAXgjD.js`) con footer `DEMO v0.4`.
+- Intro narrativa aparece, se cierra y deja jugar.
+- Calito, 4 matones, HUD 8/30, línea de visión y disparo funcionando.
+- **Gama baja emulada:** 844×390 táctil con CPU limitada 4×, 10 infectados y suministros
+  listos: se mantiene jugable. Aproximación; falta el teléfono físico.
 
 ## 5. Rendimiento
 
 | Entorno | FPS |
 |---|---|
-| Producción 1280×720 (Vercel) | 58 |
-| Local 1280×720 (combate activo) | 42–59 |
+| Producción 1280×720 | 56–58 |
+| Local 1280×720 (combate + colapso) | 57–60 |
 | Local 844×390 (móvil horizontal) | 50–57 |
 
-- Assets: **44.9 KB** en 65 PNG (2 hojas de enemigo; efectos de combate en memoria).
-- Bundle: **1,330.79 KB** (370.17 KB gzip).
-- La línea de visión se cachea 120 ms por enemigo para no castigar móviles.
-- Sigue pendiente la validación en un teléfono físico de gama baja.
+- Assets: **46.6 KB** en 69 PNG.
+- Bundle: **1,347.14 KB** (375.06 KB gzip).
+- La IA de zombis no calcula línea de visión (leen el mundo por sonido/hambre); la de
+  matones se cachea 120 ms por enemigo.
 
 ## 6. Capturas (`qa/`, ignorado por git)
 
-- `prod-title.png`, `prod-combat.png` — verificación de producción.
-- `combat-map.png`, `combat-crime.png`, `combat-ko.png`, `combat-mobile.png`.
+- `prod-title.png`, `prod-intro.png`, `prod-combat.png`, `prod-lowend.png`.
+- `combat-colapso.png`, `combat-pty-alerta.png`, `combat-ko.png`, `combat-mobile.png`.
 - Capturas de regresión: `final-desktop-*.png`, `final-mobile-*.png`.
 
 ## 7. Decisiones y riesgos conocidos
 
-1. **8 direcciones visuales:** decisión cerrada — 4 filas de animación con dirección
-   dominante, movimiento diagonal y apuntado libre. Redibujar diagonales es opcional.
-2. La IA usa línea de visión aproximada por muestreo de cuerpos estáticos (no visión
-   exacta por geometría); suficiente para el mapa actual.
-3. Sin audio.
-4. Falta probar en teléfono físico.
-5. El Slice B (infección, zombi, inventario y supervivencia) todavía no está implementado.
+1. **8 direcciones visuales:** decisión cerrada — 4 filas con dirección dominante,
+   movimiento diagonal y apuntado libre.
+2. Las alertas del apocalipsis son ficción con disclaimer visible; no se presentan como
+   avisos oficiales y no usan datos reales de emergencia.
+3. La horda y los suministros aparecen al caer el colapso; no hay respawn continuo.
+4. Sin audio.
+5. Falta probar en teléfono físico.
+6. Los zombis se apoyan en la IA existente: sin navegación de obstáculos avanzada
+   (la física les impide atravesar muros, pero pueden quedarse empujando una pared).

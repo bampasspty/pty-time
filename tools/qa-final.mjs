@@ -17,8 +17,22 @@ const check = (name, ok, detail = '') => {
   if (!ok) results.errors.push(`${name}: ${detail}`);
 };
 
-async function enterGame(page) {
-  await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' });
+async function dismissStory(page) {
+  for (let i = 0; i < 10; i++) {
+    const open = await page.evaluate(() => {
+      const ui = window.__PTY_GAME__?.scene?.getScene('UI');
+      return Boolean(ui?.modal?.isOpen);
+    });
+    if (!open) return;
+    await page.evaluate(() => {
+      const ui = window.__PTY_GAME__.scene.getScene('UI');
+      if (ui.modal.isOpen) ui.modal.handleButton(0);
+    });
+    await page.waitForTimeout(180);
+  }
+}
+
+async function enterGame(page) {  await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__PTY_GAME__?.scene?.getScenes(true)?.some((s) => s.scene.key === 'Title'), { timeout: 45000 });
   await page.waitForTimeout(900);
   await page.evaluate(() => window.__PTY_GAME__.scene.getScene('Title').newGame());
@@ -27,6 +41,8 @@ async function enterGame(page) {
   await page.evaluate(() => window.__PTY_GAME__.scene.getScene('Character').enterGame());
   await page.waitForFunction(() => window.__PTY_GAME__.scene.getScenes(true).some((s) => s.scene.key === 'Game'), { timeout: 15000 });
   await page.waitForTimeout(1400);
+  await dismissStory(page);
+  await page.waitForTimeout(500);
 }
 
 const teleport = (page, x, y) => page.evaluate(({ x, y }) => {
@@ -222,6 +238,8 @@ async function talkTo(page, id) {
   await page.evaluate(() => window.__PTY_GAME__.scene.getScene('Character').enterGame());
   await page.waitForFunction(() => window.__PTY_GAME__.scene.getScenes(true).some((s) => s.scene.key === 'Game'), { timeout: 15000 });
   await page.waitForTimeout(1800);
+  await dismissStory(page);
+  await page.waitForTimeout(500);
   const mobileUi = await page.evaluate(() => {
     const ui = window.__PTY_GAME__.scene.getScene('UI');
     return {

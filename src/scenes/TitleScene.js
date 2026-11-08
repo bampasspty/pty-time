@@ -25,7 +25,7 @@ export class TitleScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setAlign('center');
     this.footer = this.add
-      .text(0, 0, 'DEMO v0.3 · HECHO EN PANAMÁ', textStyle(7, CSS.gray))
+      .text(0, 0, 'DEMO v0.4 · HECHO EN PANAMÁ', textStyle(7, CSS.gray))
       .setOrigin(0.5);
 
     this.createBus();

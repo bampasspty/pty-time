@@ -1,20 +1,24 @@
 // Guardado local del progreso. Sin dependencias de Phaser para poder probarlo
 // con node:test.
 //
-// Esquema v2 (Slice A): vida/munición, billetera, reputación y el estado de
-// TODAS las misiones en un solo objeto. Los guardados v1 de la demo anterior
-// (campos step/hasChancla/coins en la raíz) se migran automáticamente al leer.
+// Esquema v3 (Slice B): agrega el estado del mundo (barrio/colapso/apocalipsis),
+// las banderas de historia (intro y colapso vistos) y el inventario básico.
+// Los guardados v1 (campos en la raíz) y v2 (sin mundo/inventario) se migran
+// automáticamente al leer.
 
 import { MISSIONS, MISSION_ORDER } from '../data/missions.js';
 import { CALITO } from '../data/calito.js';
 import { DEFAULT_WEAPON, STARTING_AMMO, WEAPONS } from '../data/weapons.js';
+import { STARTING_INVENTORY } from '../data/items.js';
+import { InventorySystem } from './InventorySystem.js';
 
 // La clave se mantiene para no perder las partidas de la demo v0.1.0.
 export const SAVE_KEY = 'pty-time-save-v1';
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 const PLAYER_VARIANTS = /^[mf]-(red|blue|yellow|green)$/;
 const FLAGS = ['hasChancla', 'drillUnlocked', 'drillCompleted'];
+const WORLD_PHASES = ['barrio', 'colapso', 'apocalipsis'];
 
 export function defaultSave() {
   const missions = {};
@@ -40,6 +44,9 @@ export function defaultSave() {
     wallet: { coins: 0 },
     reputation: { barrio: 0 },
     missions,
+    world: { phase: 'barrio', suppliesTaken: [] },
+    story: { introSeen: false, collapseSeen: false },
+    inventory: { slots: STARTING_INVENTORY.map((entry) => ({ ...entry })) },
   };
 }
 
@@ -51,10 +58,13 @@ const asInt = (value, fallback = 0) => {
   return Math.max(0, Math.min(999999, Math.floor(n)));
 };
 
-// Convierte cualquier guardado anterior (v1 con campos en la raíz) al esquema v2.
+// Convierte cualquier guardado anterior (v1 con campos en la raíz, v2 sin mundo
+// ni inventario) al esquema v3.
 export function migrateSave(raw) {
   if (!raw || typeof raw !== 'object') return defaultSave();
-  if (raw.version === SAVE_VERSION && raw.missions) return raw;
+  if (raw.version === SAVE_VERSION && raw.missions && raw.world && raw.story && raw.inventory) {
+    return raw;
+  }
 
   const legacyMission = {
     step: raw.step,
@@ -78,7 +88,11 @@ export function migrateSave(raw) {
     missions: {
       'el-mandado': raw.missions?.['el-mandado'] ?? legacyMission,
       'limpia-la-cancha': raw.missions?.['limpia-la-cancha'],
+      'el-colapso': raw.missions?.['el-colapso'],
     },
+    world: raw.world,
+    story: raw.story,
+    inventory: raw.inventory,
   };
 }
 
@@ -133,11 +147,36 @@ export function sanitizeSave(raw) {
     save.missions[id] = sanitizeMission(MISSIONS[id], source.missions?.[id]);
   }
 
+  // --- Slice B: mundo, historia e inventario -----------------------------
+  const collapseStep = save.missions['el-colapso'].step;
+  let phase = WORLD_PHASES.includes(source.world?.phase) ? source.world.phase : 'barrio';
+  // Coherencia: el mundo no puede ir por delante (ni por detrás) de la misión.
+  if (collapseStep === 'done') phase = 'apocalipsis';
+  else if (collapseStep === 'survive' || collapseStep === 'refugio') phase = 'colapso';
+  else if (phase === 'apocalipsis') phase = collapseStep === 'done' ? 'apocalipsis' : 'barrio';
+  save.world.phase = phase;
+
+  const taken = Array.isArray(source.world?.suppliesTaken) ? source.world.suppliesTaken : [];
+  save.world.suppliesTaken = taken
+    .filter((id) => typeof id === 'string' && id.length <= 40)
+    .slice(0, 40);
+
+  save.story.introSeen = source.story?.introSeen === true;
+  // Si el jugador ya vivió el colapso, la bandera queda fija aunque falte el flag.
+  save.story.collapseSeen = source.story?.collapseSeen === true || phase !== 'barrio';
+
+  save.inventory = new InventorySystem(source).toSave();
+
   // Todo lo que no sea una partida empezada se descarta a neutro.
   if (!save.started && MISSION_ORDER.every((id) => save.missions[id].step === MISSIONS[id].initialStep)) {
     save.wallet.coins = 0;
     save.combat.defeats = 0;
     save.player.hp = save.player.maxHp;
+    save.world.phase = 'barrio';
+    save.world.suppliesTaken = [];
+    save.story.introSeen = false;
+    save.story.collapseSeen = false;
+    save.inventory = new InventorySystem({}).toSave();
   }
   return save;
 }
@@ -178,5 +217,12 @@ export function hasProgress(storage = globalThis.localStorage) {
     const step = save.missions[id].step;
     return step !== MISSIONS[id].initialStep && step !== 'locked';
   });
-  return save.started || playedMission || save.wallet.coins > 0 || save.combat.defeats > 0;
+  return (
+    save.started ||
+    playedMission ||
+    save.wallet.coins > 0 ||
+    save.combat.defeats > 0 ||
+    save.world.phase !== 'barrio' ||
+    save.story.introSeen
+  );
 }

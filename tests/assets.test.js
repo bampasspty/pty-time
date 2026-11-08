@@ -77,3 +77,12 @@ test('iconos de interfaz 16x16 y presupuesto de assets', () => {
   assert.ok(total < 1.5 * 1024 * 1024, `Assets demasiado pesados: ${total} bytes`);
   console.log(`Assets total: ${(total / 1024).toFixed(1)} KB`);
 });
+
+test('hoja del zombi 48x96 y objetos de suministro 16x16', () => {
+  const zombie = pngSize('characters/enemy-infectado.png');
+  assert.deepEqual([zombie.width, zombie.height], [48, 96]);
+  for (const prop of ['vendaje', 'lata', 'caja']) {
+    const size = pngSize(`props/${prop}.png`);
+    assert.deepEqual([size.width, size.height], [16, 16], prop);
+  }
+});

@@ -42,6 +42,14 @@ export const SAN_MIGUELITO = {
     // id = tipo de enemigo de src/data/enemies.js (maton, maton-duro)
     { id: 'maton', x: 128, y: 492, facing: 'down' },
   ],
+  zombieSpawns: [
+    // id = tipo de zombi de src/data/zombies.js (infectado)
+    { id: 'infectado', x: 200, y: 384 },
+  ],
+  supplies: [
+    // id = objeto de src/data/items.js (vendaje, lata, caja)
+    { id: 'vendaje', x: 140, y: 322 },
+  ],
   zones: [
     { id: 'cancha', name: 'Cancha de San Isidro', type: 'open', x: 720, y: 100, w: 240, h: 180 },
   ],
@@ -92,6 +100,10 @@ export const SAN_MIGUELITO = {
    `src/data/enemies.js` y una posición transitable. Para la misión de limpieza debe
    haber al menos 3 matones en la misma zona (`plaza` de Los Andes en el mapa actual).
    Evita colocarlos junto a NPCs importantes para no interrumpir los diálogos.
+10. **Zombis y suministros (Slice B)**: `zombieSpawns` define dónde aparecen los
+    infectados al caer el colapso (se suman 2 cerca del jugador) y `supplies` los puntos
+    de recogida. Ambos usan ids válidos de `src/data/zombies.js` y `src/data/items.js`;
+    deben estar en zonas transitables y repartidos por el mapa.
 
 ## Validación
 

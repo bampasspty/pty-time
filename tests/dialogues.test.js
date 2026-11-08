@@ -6,6 +6,7 @@ import { NPC_IDS } from '../src/world/defs.js';
 
 const STEPS = ['inactive', 'find-pipe', 'find-chancla', 'return-pipe', 'report-nena', 'done'];
 const CRIME_STEPS = ['locked', 'inactive', 'deal', 'report', 'done'];
+const COLLAPSE_STEPS = ['locked', 'inactive', 'survive', 'refugio', 'done'];
 const ACTIONS = new Set([
   'startMission',
   'pipeMet',
@@ -30,20 +31,24 @@ test('getDialogue responde para todas las combinaciones sin romperse', () => {
   for (const id of NPC_IDS) {
     for (const step of STEPS) {
       for (const crimeStep of CRIME_STEPS) {
-        for (const hasChancla of [false, true]) {
-          for (const drillUnlocked of [false, true]) {
-            const result = getDialogue(id, { step, crimeStep, hasChancla, drillUnlocked });
-            assert.ok(Array.isArray(result.lines), `${id}/${step}/${crimeStep}`);
-            assert.ok(result.lines.length >= 1, `${id}/${step}/${crimeStep} sin líneas`);
-            assert.ok(result.lines.length <= 3, `${id}/${step}/${crimeStep} demasiadas líneas`);
-            assert.ok(
-              result.action === null || ACTIONS.has(result.action),
-              `${id}/${step}/${crimeStep} acción inválida: ${result.action}`,
-            );
-            for (const line of result.lines) {
-              assert.ok(line.speaker && line.text, `${id}/${step}/${crimeStep} línea incompleta`);
-              assert.ok(line.text.length <= 180, `${id}/${step}/${crimeStep} línea muy larga`);
-            }
+        for (const collapseStep of COLLAPSE_STEPS) {
+          const result = getDialogue(id, {
+            step,
+            crimeStep,
+            collapseStep,
+            hasChancla: false,
+            drillUnlocked: true,
+          });
+          assert.ok(Array.isArray(result.lines), `${id}/${step}/${crimeStep}/${collapseStep}`);
+          assert.ok(result.lines.length >= 1, `${id}/${step}/${crimeStep}/${collapseStep} sin líneas`);
+          assert.ok(result.lines.length <= 3, `${id}/${step}/${crimeStep}/${collapseStep} demasiadas líneas`);
+          assert.ok(
+            result.action === null || ACTIONS.has(result.action),
+            `${id}/${step}/${crimeStep}/${collapseStep} acción inválida: ${result.action}`,
+          );
+          for (const line of result.lines) {
+            assert.ok(line.speaker && line.text, `${id}/${step}/${crimeStep} línea incompleta`);
+            assert.ok(line.text.length <= 180, `${id}/${step}/${crimeStep} línea muy larga`);
           }
         }
       }
@@ -77,12 +82,31 @@ test('la misión criminal no se dispara si el mandado no terminó', () => {
   }
 });
 
+test('el colapso cambia los diálogos de Nena y Pipe', () => {
+  const base = { step: 'done', crimeStep: 'done', hasChancla: false, drillUnlocked: true };
+  const survive = getDialogue('nena', { ...base, collapseStep: 'survive' });
+  assert.ok(survive.lines.some((line) => line.text.includes('no salgas')));
+  const refugio = getDialogue('nena', { ...base, collapseStep: 'refugio' });
+  assert.ok(refugio.lines.some((line) => line.text.includes('Vení para acá')));
+  const done = getDialogue('nena', { ...base, collapseStep: 'done' });
+  assert.ok(done.lines.some((line) => line.text.includes('Estamos vivos')));
+  const pipe = getDialogue('pipe', { ...base, collapseStep: 'survive' });
+  assert.ok(pipe.lines.some((line) => line.text.includes('muerde')));
+  for (const step of COLLAPSE_STEPS) {
+    assert.equal(getDialogue('nena', { ...base, collapseStep: step }).action, null);
+    assert.equal(getDialogue('pipe', { ...base, collapseStep: step }).action, null);
+  }
+});
+
 test('nunca dispara acciones en pasos intermedios', () => {
   const base = { hasChancla: false, drillUnlocked: false };
   for (const id of ['chen', 'melva', 'kevin', 'yolanda', 'ana', 'chofer']) {
     for (const step of STEPS) {
       for (const crimeStep of CRIME_STEPS) {
-        assert.equal(getDialogue(id, { ...base, step, crimeStep }).action, null, `${id}/${step}/${crimeStep}`);
+        for (const collapseStep of COLLAPSE_STEPS) {
+          const result = getDialogue(id, { ...base, step, crimeStep, collapseStep });
+          assert.equal(result.action, null, `${id}/${step}/${crimeStep}/${collapseStep}`);
+        }
       }
     }
   }
